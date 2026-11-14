@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -46,82 +45,6 @@ app.use(express.static("public"));
 
 const rooms = new Map();
 const reply = (cb, obj) => { if (typeof cb === "function") cb(obj); };
-
-/* ---------- аккаунты и магазин (данные хранятся в файле) ---------- */
-
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
-const DB_FILE = path.join(DATA_DIR, "db.json");
-let db = { users: {}, sessions: {} };
-
-try {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-    db = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
-    db.users = db.users || {};
-    db.sessions = db.sessions || {};
-} catch {}
-
-let saveTimer = null;
-function saveDb() {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => {
-        const tmp = DB_FILE + ".tmp";
-        fs.writeFile(tmp, JSON.stringify(db), err => { if (!err) fs.rename(tmp, DB_FILE, () => {}); });
-    }, 200);
-}
-
-const SLOTS = ["hat", "badge", "nameColor", "background"];
-const PRICES = { hat: [10, 20, 40, 80, 140], badge: [5, 10, 20, 40, 80], background: [20, 40, 80, 140, 280] };
-const RAW = {
-    hat: [["🧢", "👒"], ["🎓", "⛑️"], ["🎩", "🪖"], ["🎅", "🎃"], ["👑", "🦄"]],
-    badge: [["😀", "❤️", "⭐"], ["🔥", "⚡", "🍀"], ["💀", "🌈", "🎯"], ["🔮", "🌟", "👁️"], ["🐉", "💎", "🏆"]],
-    background: [
-        ["linear-gradient(135deg,#9ca3af,#374151)", "linear-gradient(135deg,#a8a29e,#44403c)"],
-        ["linear-gradient(135deg,#34d399,#065f46)", "linear-gradient(135deg,#86efac,#166534)"],
-        ["linear-gradient(135deg,#a78bfa,#4c1d95)", "linear-gradient(135deg,#c084fc,#581c87)"],
-        ["linear-gradient(135deg,#f472b6,#9f1239)", "linear-gradient(135deg,#fb7185,#7f1d1d)"],
-        ["linear-gradient(135deg,#fde047,#b45309)", "linear-gradient(135deg,#fbbf24,#92400e 60%,#451a03)"]
-    ]
-};
-const NAME_COLORS = ["#4c9aff", "#ff5c5c", "#5ce08a", "#c77dff", "#ff9f43", "#ff7eb6", "#2de2e6", "#ffd84d"];
-
-const CATALOG = [];
-for (const slot of ["hat", "badge", "background"]) {
-    RAW[slot].forEach((list, r) => list.forEach((v, i) =>
-        CATALOG.push({ id: `${slot}_${r}_${i}`, slot, r, price: PRICES[slot][r], v })));
-}
-NAME_COLORS.forEach((v, i) => CATALOG.push({ id: `nameColor_0_${i}`, slot: "nameColor", r: 0, price: 20, v }));
-const BY_ID = Object.fromEntries(CATALOG.map(i => [i.id, i]));
-
-const REWARD = { townWin: 25, mafiaWin: 50, townLose: 5, mafiaLose: 10 };
-
-const hashPw = (pw, salt) => crypto.scryptSync(pw, salt, 32).toString("hex");
-
-function profileOf(key) {
-    const u = db.users[key];
-    return { name: u.name, coins: u.coins, owned: [...u.owned], equipped: { ...u.equipped } };
-}
-
-// Внешний вид игрока берётся только из каталога на сервере — подделать нельзя.
-function cosOf(key) {
-    const u = key && db.users[key];
-    if (!u) return {};
-    const v = slot => BY_ID[u.equipped[slot]]?.v;
-    return { nameColor: v("nameColor"), badge: v("badge"), hat: v("hat"), bg: v("background") };
-}
-
-function loginSocket(socket, key, cb) {
-    const token = crypto.randomBytes(32).toString("hex");
-    db.sessions[token] = key;
-    socket.data.user = key;
-    saveDb();
-    reply(cb, { success: true, token, profile: profileOf(key) });
-}
-
-const locked = socket => (socket.data.lockUntil || 0) > Date.now();
-function failAttempt(socket) {
-    socket.data.fails = (socket.data.fails || 0) + 1;
-    if (socket.data.fails >= 8) { socket.data.lockUntil = Date.now() + 60000; socket.data.fails = 0; }
-}
 
 const FACES = ["🙂","😎","😄","😁","😂","😐","😶","🤔","😴","😮","😡","🥳","🤓","😇","🤠","😈","👽","🤖","🐻","🐺"];
 const BODIES = ["triangle","circle","square","rectangle","diamond","star","oval","hexagon","capsule","shield"];
@@ -283,23 +206,6 @@ function finish(code, win) {
     g.phase = "finished";
     g.winner = win;
     g.endsAt = null;
-
-    // Монеты получают только вошедшие в аккаунт игроки (не ведущий), по одному разу за аккаунт
-    const paid = new Set();
-    for (const p of room.players) {
-        if (p.id === room.hostId || !p.user || !(p.id in g.roles) || paid.has(p.user)) continue;
-        const u = db.users[p.user];
-        if (!u) continue;
-        paid.add(p.user);
-
-        const mafiaSide = g.roles[p.id] === "mafia";
-        const won = (win === "mafia") === mafiaSide;
-        const amount = won ? (mafiaSide ? REWARD.mafiaWin : REWARD.townWin) : (mafiaSide ? REWARD.mafiaLose : REWARD.townLose);
-
-        u.coins += amount;
-        io.to(p.id).emit("reward", { amount, coins: u.coins, won });
-    }
-    if (paid.size) saveDb();
 
     sendRoom(code);
 }
@@ -559,7 +465,7 @@ io.on("connection", socket => {
         const code = generateCode();
         rooms.set(code, {
             hostId: socket.id,
-            players: [{ id: socket.id, name, character: cleanCharacter(data?.character), user: socket.data.user || null, cos: cosOf(socket.data.user) }],
+            players: [{ id: socket.id, name, character: cleanCharacter(data?.character), cos: {} }],
             settings: checked.settings,
             game: null
         });
@@ -583,7 +489,7 @@ io.on("connection", socket => {
         if (room.players.some(p => p.name.toLowerCase() === name.toLowerCase()))
             return reply(cb, { error: "e_dupname" });
 
-        room.players.push({ id: socket.id, name, character: cleanCharacter(data?.character), user: socket.data.user || null, cos: cosOf(socket.data.user) });
+        room.players.push({ id: socket.id, name, character: cleanCharacter(data?.character), cos: {} });
         socket.join(code);
         reply(cb, { success: true, code, settings: room.settings });
         sendRoom(code);
@@ -717,106 +623,6 @@ io.on("connection", socket => {
     socket.on("leaveRoom", (data, cb) => {
         removePlayer(socket.id);
         reply(cb, { success: true });
-    });
-
-    /* ----- аккаунт ----- */
-
-    socket.on("register", (d, cb) => {
-        if (locked(socket)) return reply(cb, { error: "a_many" });
-        const name = String(d?.username ?? "").trim();
-        const pw = String(d?.password ?? "");
-
-        if (!/^[\p{L}\p{N}_]{3,16}$/u.test(name)) return reply(cb, { error: "a_name" });
-        if (pw.length < 6 || pw.length > 100) return reply(cb, { error: "a_pass" });
-
-        const key = name.toLowerCase();
-        if (db.users[key]) { failAttempt(socket); return reply(cb, { error: "a_exists" }); }
-
-        const salt = crypto.randomBytes(16).toString("hex");
-        db.users[key] = { name, salt, hash: hashPw(pw, salt), coins: 0, owned: [], equipped: {} };
-        loginSocket(socket, key, cb);
-    });
-
-    socket.on("login", (d, cb) => {
-        if (locked(socket)) return reply(cb, { error: "a_many" });
-        const key = String(d?.username ?? "").trim().toLowerCase();
-        const u = db.users[key];
-        let ok = false;
-
-        if (u) {
-            const got = Buffer.from(hashPw(String(d?.password ?? "").slice(0, 100), u.salt), "hex");
-            const exp = Buffer.from(u.hash, "hex");
-            ok = got.length === exp.length && crypto.timingSafeEqual(got, exp);
-        }
-
-        if (!ok) { failAttempt(socket); return reply(cb, { error: "a_wrong" }); }
-        loginSocket(socket, key, cb);
-    });
-
-    socket.on("auth", (d, cb) => {
-        const key = db.sessions[String(d?.token ?? "")];
-        if (!key || !db.users[key]) return reply(cb, { error: "a_login" });
-        socket.data.user = key;
-        reply(cb, { success: true, profile: profileOf(key) });
-    });
-
-    socket.on("logout", (d, cb) => {
-        const token = String(d?.token ?? "");
-        if (db.sessions[token] && db.sessions[token] === socket.data.user) { delete db.sessions[token]; saveDb(); }
-        socket.data.user = null;
-        reply(cb, { success: true });
-    });
-
-    /* ----- магазин ----- */
-
-    socket.on("shopInfo", (d, cb) => {
-        const key = socket.data.user;
-        reply(cb, { success: true, catalog: CATALOG, profile: key ? profileOf(key) : null });
-    });
-
-    socket.on("buyItem", (d, cb) => {
-        const key = socket.data.user;
-        if (!key) return reply(cb, { error: "a_login" });
-
-        const item = BY_ID[String(d?.id ?? "")];
-        const u = db.users[key];
-
-        if (!item) return reply(cb, { error: "s_item" });
-        if (u.owned.includes(item.id)) return reply(cb, { error: "s_owned" });
-        if (u.coins < item.price) return reply(cb, { error: "s_coins" });
-
-        u.coins -= item.price;
-        u.owned.push(item.id);
-        saveDb();
-        reply(cb, { success: true, profile: profileOf(key) });
-    });
-
-    socket.on("equipItem", (d, cb) => {
-        const key = socket.data.user;
-        if (!key) return reply(cb, { error: "a_login" });
-
-        const slot = String(d?.slot ?? "");
-        const u = db.users[key];
-        if (!SLOTS.includes(slot)) return reply(cb, { error: "s_item" });
-
-        if (d?.id === null) {
-            delete u.equipped[slot];
-        } else {
-            const item = BY_ID[String(d?.id ?? "")];
-            if (!item || item.slot !== slot) return reply(cb, { error: "s_item" });
-            if (!u.owned.includes(item.id)) return reply(cb, { error: "s_notowned" });
-            u.equipped[slot] = item.id;
-        }
-
-        saveDb();
-
-        const f = findRoom(socket.id);
-        if (f) {
-            f.room.players.find(p => p.id === socket.id).cos = cosOf(key);
-            sendRoom(f.code);
-        }
-
-        reply(cb, { success: true, profile: profileOf(key) });
     });
 
     socket.on("disconnect", () => removePlayer(socket.id));
