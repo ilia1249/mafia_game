@@ -729,7 +729,6 @@ body.rtl .host-tag {
 
 <!-- ГЛАВНОЕ МЕНЮ -->
 <section id="mainPanel" class="panel">
-    <div id="accountBar" class="account-bar"></div>
     <h1 class="logo">MAFIA</h1>
     <p class="subtitle">THE TOWN IS NEVER ASLEEP</p>
 
@@ -738,7 +737,6 @@ body.rtl .host-tag {
         <button class="btn" onclick="showPanel('joinPanel')" data-i18n="joinGame">Войти в игру</button>
         <button class="btn secondary" onclick="openEditor('menu')" data-i18n="characterEditor">Редактор персонажа</button>
         <button class="btn secondary" onclick="showPanel('settingsPanel')" data-i18n="settings">Настройки</button>
-        <button class="btn secondary" onclick="openShop()" data-i18n="shop">Магазин</button>
         <button class="btn secondary" onclick="showPanel('rulesPanel')" data-i18n="rules">Правила игры</button>
     </div>
 
@@ -977,30 +975,6 @@ body.rtl .host-tag {
     </div>
 
     <div id="roomMessage" class="message"></div>
-</section>
-
-<!-- АККАУНТ -->
-<section id="authPanel" class="panel hidden">
-    <button class="btn secondary small-btn back-button" onclick="showPanel('mainPanel')" data-i18n="back">Назад</button>
-    <h2 class="section-title" data-i18n="account">Аккаунт</h2>
-    <div class="form-group"><label data-i18n="username">Имя пользователя</label><input class="input" id="authUser" maxlength="16" autocomplete="username"></div>
-    <div class="form-group"><label data-i18n="password">Пароль</label><input class="input" id="authPass" type="password" maxlength="100" autocomplete="current-password"></div>
-    <div class="actions">
-        <button class="btn" onclick="doAuth('login')" data-i18n="login">Войти</button>
-        <button class="btn secondary" onclick="doAuth('register')" data-i18n="register">Создать аккаунт</button>
-    </div>
-    <div id="authMessage" class="message"></div>
-</section>
-
-<!-- МАГАЗИН -->
-<section id="shopPanel" class="panel hidden">
-    <button class="btn secondary small-btn back-button" onclick="showPanel('mainPanel')" data-i18n="back">Назад</button>
-    <h2 class="section-title" data-i18n="shop">Магазин</h2>
-    <div class="shop-top"><div id="shopCoins" class="shop-coins"></div><div class="small" data-i18n="shopTry"></div></div>
-    <div class="editor-preview"><div id="shopPreview"></div></div>
-    <div id="shopName" class="shop-name"></div>
-    <div id="shopTabs" class="actions"></div>
-    <div id="shopGrid" class="shop-grid"></div>
 </section>
 
 <!-- ПРАВИЛА -->
@@ -1499,8 +1473,7 @@ slot_hat:"Шляпы", slot_badge:"Бейджики", slot_nameColor:"Цвета
 rar_0:"Обычный", rar_1:"Редкий", rar_2:"Эпический", rar_3:"Мифический", rar_4:"Легендарный",
 a_name:"Имя: 3–16 символов, буквы, цифры и _.", a_pass:"Пароль: минимум 6 символов.", a_exists:"Это имя уже занято.", a_wrong:"Неверное имя или пароль.",
 a_many:"Слишком много попыток. Подождите минуту.", a_login:"Сначала войдите в аккаунт.", s_item:"Предмет не найден.", s_owned:"Этот предмет уже куплен.", s_coins:"Недостаточно монет.", s_notowned:"Этот предмет не куплен.",
-r_exile:"после голосования ведущий нажимает «Далее»: в центре стола показывают, кого изгнали. Ещё одно «Далее», и под ним появляется его роль. Если изгнан последний мафиози, город побеждает сразу; если мафия ещё есть, игра продолжается ночью.",
-r_tip_coins:"Игроки с аккаунтом получают монеты: победа мирных +25, победа мафии +50, поражение мирных +5, поражение мафии +10. Ведущий монет не получает. В магазине за монеты покупаются шляпы, бейджики, цвета имени и фоны пяти редкостей."
+r_exile:"после голосования ведущий нажимает «Далее»: в центре стола показывают, кого изгнали. Ещё одно «Далее», и под ним появляется его роль. Если изгнан последний мафиози, город побеждает сразу; если мафия ещё есть, игра продолжается ночью."
 });
 Object.assign(translations.en, {
 phase_exile:"Banishment", phase_exileRole:"Banishment", hHostExile:"Press “Next” to continue.", hExile:"The town is deciding the banished player's fate…",
@@ -1512,8 +1485,7 @@ slot_hat:"Hats", slot_badge:"Badges", slot_nameColor:"Name colors", slot_backgro
 rar_0:"Common", rar_1:"Rare", rar_2:"Epic", rar_3:"Mythic", rar_4:"Legendary",
 a_name:"Username: 3–16 characters, letters, digits and _.", a_pass:"Password: at least 6 characters.", a_exists:"That username is taken.", a_wrong:"Wrong username or password.",
 a_many:"Too many attempts. Wait a minute.", a_login:"Please log in first.", s_item:"Item not found.", s_owned:"You already own this item.", s_coins:"Not enough coins.", s_notowned:"You don't own this item.",
-r_exile:"after the vote the host presses “Next”: the centre of the table shows who was banished. One more “Next” and their role appears below. If the last mafia member was banished, the town wins at once; if mafia remain, the game goes on into the night.",
-r_tip_coins:"Logged-in players earn coins: town win +25, mafia win +50, town loss +5, mafia loss +10. The host earns none. In the shop, coins buy hats, badges, name colors and backgrounds in five rarities."
+r_exile:"after the vote the host presses “Next”: the centre of the table shows who was banished. One more “Next” and their role appears below. If the last mafia member was banished, the town wins at once; if mafia remain, the game goes on into the night."
 });
 Object.assign(translations.es, {
 phase_exile:"Expulsión", phase_exileRole:"Expulsión", hHostExile:"Pulsa «Siguiente» para continuar.", hExile:"La ciudad decide el destino del expulsado…",
@@ -1525,8 +1497,7 @@ slot_hat:"Sombreros", slot_badge:"Insignias", slot_nameColor:"Colores de nombre"
 rar_0:"Común", rar_1:"Raro", rar_2:"Épico", rar_3:"Mítico", rar_4:"Legendario",
 a_name:"Nombre: 3–16 caracteres, letras, números y _.", a_pass:"Contraseña: mínimo 6 caracteres.", a_exists:"Ese nombre ya está en uso.", a_wrong:"Nombre o contraseña incorrectos.",
 a_many:"Demasiados intentos. Espera un minuto.", a_login:"Inicia sesión primero.", s_item:"Objeto no encontrado.", s_owned:"Ya tienes este objeto.", s_coins:"No tienes suficientes monedas.", s_notowned:"No tienes este objeto.",
-r_exile:"tras la votación el anfitrión pulsa «Siguiente»: el centro de la mesa muestra a quién expulsaron. Otro «Siguiente» y debajo aparece su rol. Si expulsaron al último mafioso, la ciudad gana al instante; si queda mafia, la partida sigue con la noche.",
-r_tip_coins:"Quien ha iniciado sesión gana monedas: victoria de la ciudad +25, de la mafia +50, derrota de la ciudad +5, de la mafia +10. El anfitrión no gana. En la tienda las monedas compran sombreros, insignias, colores de nombre y fondos de cinco rarezas."
+r_exile:"tras la votación el anfitrión pulsa «Siguiente»: el centro de la mesa muestra a quién expulsaron. Otro «Siguiente» y debajo aparece su rol. Si expulsaron al último mafioso, la ciudad gana al instante; si queda mafia, la partida sigue con la noche."
 });
 Object.assign(translations.ja, {
 phase_exile:"追放", phase_exileRole:"追放", hHostExile:"「次へ」を押して続けてください。", hExile:"街が追放者の運命を決めています…",
@@ -1538,8 +1509,7 @@ slot_hat:"帽子", slot_badge:"バッジ", slot_nameColor:"名前の色", slot_b
 rar_0:"コモン", rar_1:"レア", rar_2:"エピック", rar_3:"ミシック", rar_4:"レジェンダリー",
 a_name:"ユーザー名：3〜16文字、文字・数字・_。", a_pass:"パスワード：6文字以上。", a_exists:"その名前は使われています。", a_wrong:"ユーザー名またはパスワードが違います。",
 a_many:"試行回数が多すぎます。1分お待ちください。", a_login:"先にログインしてください。", s_item:"アイテムが見つかりません。", s_owned:"すでに持っています。", s_coins:"コインが足りません。", s_notowned:"このアイテムは未購入です。",
-r_exile:"投票の後、ホストが「次へ」を押すと、テーブルの中央に追放された人が表示されます。もう一度「次へ」を押すと、その下に役職が表示されます。最後のマフィアが追放されたら市民の即勝利です。マフィアが残っていれば夜に進みます。",
-r_tip_coins:"アカウントにログインしている人はコインを獲得します：市民の勝利+25、マフィアの勝利+50、市民の敗北+5、マフィアの敗北+10。ホストは獲得しません。ショップでは、5段階のレア度の帽子・バッジ・名前の色・背景を買えます。"
+r_exile:"投票の後、ホストが「次へ」を押すと、テーブルの中央に追放された人が表示されます。もう一度「次へ」を押すと、その下に役職が表示されます。最後のマフィアが追放されたら市民の即勝利です。マフィアが残っていれば夜に進みます。"
 });
 Object.assign(translations.fr, {
 phase_exile:"Bannissement", phase_exileRole:"Bannissement", hHostExile:"Appuyez sur « Suivant » pour continuer.", hExile:"La ville décide du sort du banni…",
@@ -1551,8 +1521,7 @@ slot_hat:"Chapeaux", slot_badge:"Badges", slot_nameColor:"Couleurs de nom", slot
 rar_0:"Commun", rar_1:"Rare", rar_2:"Épique", rar_3:"Mythique", rar_4:"Légendaire",
 a_name:"Nom : 3 à 16 caractères, lettres, chiffres et _.", a_pass:"Mot de passe : 6 caractères minimum.", a_exists:"Ce nom est déjà pris.", a_wrong:"Nom ou mot de passe incorrect.",
 a_many:"Trop de tentatives. Attendez une minute.", a_login:"Connectez-vous d'abord.", s_item:"Objet introuvable.", s_owned:"Vous possédez déjà cet objet.", s_coins:"Pas assez de pièces.", s_notowned:"Vous ne possédez pas cet objet.",
-r_exile:"après le vote, l'hôte appuie sur « Suivant » : le centre de la table montre qui a été banni. Un nouveau « Suivant » et son rôle apparaît dessous. Si le dernier mafieux est banni, la ville gagne aussitôt ; s'il reste de la mafia, la partie continue avec la nuit.",
-r_tip_coins:"Les joueurs connectés gagnent des pièces : victoire de la ville +25, de la mafia +50, défaite de la ville +5, de la mafia +10. L'hôte n'en gagne pas. À la boutique, les pièces achètent chapeaux, badges, couleurs de nom et fonds de cinq raretés."
+r_exile:"après le vote, l'hôte appuie sur « Suivant » : le centre de la table montre qui a été banni. Un nouveau « Suivant » et son rôle apparaît dessous. Si le dernier mafieux est banni, la ville gagne aussitôt ; s'il reste de la mafia, la partie continue avec la nuit."
 });
 Object.assign(translations.he, {
 phase_exile:"גירוש", phase_exileRole:"גירוש", hHostExile:"לחץ «הבא» כדי להמשיך.", hExile:"העיר מחליטה מה יקרה למגורש…",
@@ -1564,8 +1533,7 @@ slot_hat:"כובעים", slot_badge:"תגים", slot_nameColor:"צבעי שם", 
 rar_0:"רגיל", rar_1:"נדיר", rar_2:"אפי", rar_3:"מיתי", rar_4:"אגדי",
 a_name:"שם: 3–16 תווים, אותיות, ספרות ו־_.", a_pass:"סיסמה: לפחות 6 תווים.", a_exists:"השם הזה תפוס.", a_wrong:"שם משתמש או סיסמה שגויים.",
 a_many:"יותר מדי ניסיונות. המתן דקה.", a_login:"התחבר קודם.", s_item:"הפריט לא נמצא.", s_owned:"הפריט כבר שלך.", s_coins:"אין מספיק מטבעות.", s_notowned:"הפריט עדיין לא נרכש.",
-r_exile:"אחרי ההצבעה המארח לוחץ «הבא»: במרכז השולחן מוצג מי גורש. לחיצה נוספת על «הבא» חושפת מתחתיו את תפקידו. אם גורש איש המאפיה האחרון, העיר מנצחת מיד; אם נשארה מאפיה, המשחק ממשיך ללילה.",
-r_tip_coins:"שחקנים מחוברים מרוויחים מטבעות: ניצחון העיר +25, ניצחון המאפיה +50, הפסד העיר +5, הפסד המאפיה +10. המארח לא מקבל. בחנות קונים במטבעות כובעים, תגים, צבעי שם ורקעים בחמש דרגות נדירות."
+r_exile:"אחרי ההצבעה המארח לוחץ «הבא»: במרכז השולחן מוצג מי גורש. לחיצה נוספת על «הבא» חושפת מתחתיו את תפקידו. אם גורש איש המאפיה האחרון, העיר מנצחת מיד; אם נשארה מאפיה, המשחק ממשיך ללילה."
 });
 
 Object.assign(translations.ru, { e_noserver:"Сервер не отвечает на вход. Скорее всего, работает СТАРЫЙ сервер: закройте его (taskkill /F /IM node.exe), запустите node server.js и обновите страницу (Ctrl+F5)." });
@@ -2311,7 +2279,6 @@ function leaveRoom() {
 ========================= */
 
 socket.on("connect", () => {
-    tryAuth();
     if (currentCode) {
         requestRoomUpdate();
     }
@@ -2675,11 +2642,7 @@ function applyGameLang() {
     $("chatTitle").textContent = "💬 " + t("chatTitle");
     $("chatInput").placeholder = t("chatPh");
     $("eyeFab").title = t("eyeBtn");
-    $("authUser").placeholder = t("username");
-    $("authPass").placeholder = t("password");
     renderRules();
-    updateAccountBar();
-    if (!$("shopPanel").classList.contains("hidden")) renderShop();
     $("hostName").placeholder = t("enterNamePh");
     $("joinName").placeholder = t("enterNamePh");
     if (G) renderGame();
@@ -2881,241 +2844,12 @@ function renderRules() {
     p(t("r_night"), "🌙 " + t("phase_night")); p(t("r_morning"), "🌅 " + t("phase_morning"));
     p(t("r_day"), "☀️ " + t("phase_discussion")); p(t("r_vote"), "⚖️ " + t("phase_voting")); p(t("r_exile"), "🚪 " + t("phase_exile"));
     h("r_win_h"); p(t("r_win"));
-    h("r_tips_h"); p(t("r_tip_eye")); p(t("r_tip_chat")); p(t("r_tip_modes")); p(t("r_tip_coins"));
+    h("r_tips_h"); p(t("r_tip_eye")); p(t("r_tip_chat")); p(t("r_tip_modes"));
 }
 
-/* ---------- аккаунт, магазин, предметы ---------- */
-
-let PROFILE = null, SHOP = [], lastReward = null, shopTab = "hat", tryOn = {};
-const SLOTS = ["hat", "badge", "nameColor", "background"];
-const RARC = ["#b8b8b8", "#4fcf6d", "#a56bff", "#ff5c7a", "#ffc94d"];
-
-// Запрос с ожиданием ответа: если сервер молчит (старая версия), покажем понятную ошибку
-function ask(ev, data, cb) {
-    if (!socket.connected) { cb({ error: "connectionError" }); return; }
-    socket.timeout(5000).emit(ev, data, (err, r) => cb(err ? { error: "e_noserver" } : r));
-}
-
-const itemById = id => SHOP.find(i => i.id === id);
-
-function cosFrom(equipped, over) {
-    const e = { ...(equipped || {}), ...(over || {}) };
-    const v = slot => { const it = itemById(e[slot]); return it ? it.v : undefined; };
-    return { nameColor: v("nameColor"), badge: v("badge"), hat: v("hat"), bg: v("background") };
-}
-const myCos = () => PROFILE ? cosFrom(PROFILE.equipped) : {};
-
-function mkBtn(text, fn, cls) {
-    const b = document.createElement("button");
-    b.className = "btn" + (cls ? " " + cls : "");
-    b.textContent = text;
-    b.onclick = fn;
-    return b;
-}
-
-function updateAccountBar() {
-    const bar = $("accountBar");
-    if (!bar) return;
-    bar.innerHTML = "";
-
-    if (PROFILE) {
-        const n = document.createElement("span");
-        n.className = "acc-name";
-        n.textContent = "👤 " + PROFILE.name + " · 🪙 " + PROFILE.coins;
-        bar.append(n, mkBtn(t("shop"), openShop), mkBtn(t("logout"), doLogout, "secondary"));
-    } else {
-        const g = document.createElement("span");
-        g.className = "small";
-        g.textContent = t("guestHint");
-        bar.append(g, mkBtn(t("login"), () => showPanel("authPanel")));
-    }
-}
-
-function fillNames() {
-    if (!PROFILE) return;
-    ["hostName", "joinName"].forEach(id => { if (!$(id).value) $(id).value = PROFILE.name; });
-}
-
-function loadShop(cb) {
-    ask("shopInfo", {}, r => {
-        if (r && r.success) { SHOP = r.catalog; if (r.profile) PROFILE = r.profile; }
-        if (cb) cb();
-    });
-}
-
-function tryAuth() {
-    const token = localStorage.getItem("mafiaToken");
-    if (!token) { loadShop(updateAccountBar); return; }
-
-    ask("auth", { token }, r => {
-        if (r && r.success) PROFILE = r.profile;
-        else { if (r && r.error === "a_login") localStorage.removeItem("mafiaToken"); PROFILE = null; }
-        loadShop(() => { updateAccountBar(); fillNames(); });
-    });
-}
-
-function doAuth(kind) {
-    hideMessage("authMessage");
-    ask(kind, { username: $("authUser").value.trim(), password: $("authPass").value }, r => {
-        if (!r || !r.success) { showMessage("authMessage", trErr(r) || tr("e_generic")); return; }
-        localStorage.setItem("mafiaToken", r.token);
-        PROFILE = r.profile;
-        $("authPass").value = "";
-        loadShop(() => { updateAccountBar(); fillNames(); openShop(); });
-    });
-}
-
-function doLogout() {
-    socket.emit("logout", { token: localStorage.getItem("mafiaToken") });
-    localStorage.removeItem("mafiaToken");
-    PROFILE = null;
-    updateAccountBar();
-}
-
-socket.on("reward", r => {
-    lastReward = r;
-    if (PROFILE) PROFILE.coins = r.coins;
-    updateAccountBar();
-    if (G && G.phase === "finished") { $("gVictory").dataset.k = ""; renderGame(); }
-});
-
-function itemChip(item, selected) {
-    const b = document.createElement("button");
-    b.className = "choice item-chip" + (selected ? " selected" : "");
-    b.style.borderColor = RARC[item.r];
-
-    if (item.slot === "nameColor" || item.slot === "background") {
-        const d = document.createElement("span");
-        d.className = item.slot === "nameColor" ? "chip-dot" : "chip-bg";
-        d.style.background = item.v;
-        b.appendChild(d);
-    } else {
-        b.textContent = item.v;
-    }
-    return b;
-}
-
-function equipSlot(slot, id) {
-    ask("equipItem", { slot, id }, r => {
-        if (!r || !r.success) { toast(trErr(r) || tr("e_generic"), "err"); return; }
-        PROFILE = r.profile;
-        renderEditor();
-        updateAccountBar();
-        if (!$("shopPanel").classList.contains("hidden")) renderShop();
-    });
-}
-
-function renderCosChoosers() {
-    const box = $("cosChoosers");
-    if (!box) return;
-    box.innerHTML = "";
-
-    if (!PROFILE) {
-        const n = document.createElement("div");
-        n.className = "small";
-        n.style.marginBottom = "14px";
-        n.textContent = t("loginForItems");
-        box.appendChild(n);
-        return;
-    }
-
-    SLOTS.forEach(slot => {
-        const sec = document.createElement("div");
-        sec.className = "setting-section";
-        const h = document.createElement("h3");
-        h.textContent = t("slot_" + slot);
-        const grid = document.createElement("div");
-        grid.className = "choice-grid";
-
-        const none = document.createElement("button");
-        none.className = "choice" + (PROFILE.equipped[slot] ? "" : " selected");
-        none.textContent = "∅";
-        none.title = t("none");
-        none.onclick = () => equipSlot(slot, null);
-        grid.appendChild(none);
-
-        SHOP.filter(i => i.slot === slot && PROFILE.owned.includes(i.id)).forEach(i => {
-            const c = itemChip(i, PROFILE.equipped[slot] === i.id);
-            c.onclick = () => equipSlot(slot, i.id);
-            grid.appendChild(c);
-        });
-
-        sec.append(h, grid);
-        box.appendChild(sec);
-    });
-}
-
-function openShop() {
-    if (!PROFILE) { showPanel("authPanel"); return; }
-    tryOn = {};
-    showPanel("shopPanel");
-    renderShop();
-}
-
-function renderShop() {
-    if (!PROFILE) return;
-    $("shopCoins").textContent = "🪙 " + PROFILE.coins;
-
-    const cos = cosFrom(PROFILE.equipped, tryOn);
-    const pv = $("shopPreview");
-    pv.innerHTML = "";
-    pv.appendChild(makeAvatar({ character, cos }));
-
-    const nm = $("shopName");
-    nm.textContent = PROFILE.name;
-    nm.style.color = cos.nameColor || "";
-
-    const tabs = $("shopTabs");
-    tabs.innerHTML = "";
-    SLOTS.forEach(slot => {
-        const b = mkBtn(t("slot_" + slot), () => { shopTab = slot; renderShop(); }, slot === shopTab ? "" : "secondary");
-        b.classList.add("small-btn");
-        tabs.appendChild(b);
-    });
-
-    const grid = $("shopGrid");
-    grid.innerHTML = "";
-
-    SHOP.filter(i => i.slot === shopTab).sort((a, b) => a.r - b.r || a.price - b.price).forEach((item, idx) => {
-        const owned = PROFILE.owned.includes(item.id);
-        const worn = PROFILE.equipped[item.slot] === item.id;
-
-        const card = document.createElement("div");
-        card.className = "shop-item" + (tryOn[item.slot] === item.id ? " sel" : "");
-        card.style.borderColor = RARC[item.r];
-        card.style.color = RARC[item.r];
-        card.style.animationDelay = (idx * 30) + "ms";
-        card.onclick = () => { tryOn[item.slot] = item.id; renderShop(); };
-
-        const chip = itemChip(item, false);
-        chip.style.pointerEvents = "none";
-
-        const rar = document.createElement("div");
-        rar.className = "rar-label";
-        rar.textContent = t("rar_" + item.r);
-
-        const price = document.createElement("div");
-        price.className = "price";
-        price.textContent = "🪙 " + item.price;
-
-        let btn;
-        if (worn) { btn = mkBtn(t("equipped"), () => {}, "secondary small-btn"); btn.disabled = true; }
-        else if (owned) btn = mkBtn(t("equip"), e => { e.stopPropagation(); equipSlot(item.slot, item.id); }, "green small-btn");
-        else btn = mkBtn(t("buy"), e => {
-            e.stopPropagation();
-            ask("buyItem", { id: item.id }, r => {
-                if (!r || !r.success) { toast(trErr(r) || tr("e_generic"), "err"); return; }
-                PROFILE = r.profile;
-                toast(t("bought"), "day");
-                updateAccountBar();
-                renderShop();
-            });
-        }, "small-btn");
-
-        card.append(chip, rar, price, btn);
-        grid.appendChild(card);
-    });
-}
+/* ---------- бесплатный редактор внешности ---------- */
+const myCos = () => ({});
+let lastReward = null;
 
 function initialize() {
     character = cleanCharacter(character);
