@@ -1,0 +1,3139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAFIA — The Town Is Never Asleep | Играть в Мафию онлайн бесплатно</title>
+<meta name="description" content="MAFIA — The Town Is Never Asleep: бесплатная онлайн-игра «Мафия» с друзьями прямо в браузере. Создайте комнату, найдите мафию, шерифа и доктора. Free online Mafia (Werewolf) party game, no download.">
+<meta name="keywords" content="мафия онлайн, играть в мафию, мафия игра с друзьями, mafia online, mafia game, werewolf online, The Town Is Never Asleep">
+<meta name="google-site-verification" content="__GOOGLE_VERIFY__">
+<meta name="msvalidate.01" content="__BING_VERIFY__">
+<link rel="canonical" href="__SITE_URL__/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MAFIA — The Town Is Never Asleep">
+<meta property="og:description" content="Бесплатная онлайн-игра «Мафия» с друзьями в браузере. Free online Mafia party game.">
+<meta property="og:url" content="__SITE_URL__/">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"MAFIA — The Town Is Never Asleep","alternateName":["Мафия онлайн","Mafia Online"],
+"description":"Free online multiplayer Mafia (Werewolf) party game for friends. Бесплатная онлайн-игра «Мафия» в браузере.",
+"url":"__SITE_URL__/","genre":["Party game","Social deduction"],"applicationCategory":"Game","operatingSystem":"Any (web browser)",
+"playMode":"MultiPlayer","inLanguage":["ru","en","es","ja","fr","he"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #171313;
+    --panel: rgba(35, 27, 25, 0.96);
+    --panel2: rgba(54, 39, 34, 0.95);
+    --border: #765344;
+    --gold: #d7a45b;
+    --gold-light: #f0ca83;
+    --red: #a93630;
+    --text: #f5e9d9;
+    --muted: #b8a69a;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(ellipse at top, rgba(106, 57, 42, 0.35), transparent 60%),
+        repeating-linear-gradient(
+            0deg,
+            #211917 0px,
+            #211917 22px,
+            #291e1b 23px,
+            #291e1b 25px
+        );
+    background-attachment: fixed;
+}
+
+button, input, select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px 15px;
+}
+
+.container {
+    width: 100%;
+    max-width: 850px;
+    margin: auto;
+}
+
+.panel {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.55);
+}
+
+.logo {
+    font-size: clamp(40px, 8vw, 75px);
+    font-weight: 900;
+    letter-spacing: 9px;
+    text-align: center;
+    color: var(--gold-light);
+    text-shadow: 0 0 20px rgba(215,164,91,0.25);
+    margin: 0;
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--muted);
+    letter-spacing: 5px;
+    font-size: 12px;
+    margin: 8px 0 35px;
+}
+
+.section-title {
+    text-align: center;
+    color: var(--gold-light);
+    font-size: 25px;
+    margin: 0 0 25px;
+}
+
+.menu-buttons {
+    max-width: 420px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+}
+
+.btn {
+    border: 1px solid #a77b4b;
+    border-radius: 9px;
+    background: linear-gradient(180deg, #79513c, #4d3026);
+    color: #fff1dc;
+    padding: 15px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn.secondary {
+    background: linear-gradient(180deg, #403330, #29201e);
+    border-color: #6b5147;
+}
+
+.btn.red {
+    background: linear-gradient(180deg, #a83d36, #65221f);
+    border-color: #c45d53;
+}
+
+.btn.green {
+    background: linear-gradient(180deg, #467044, #29452c);
+    border-color: #71976a;
+}
+
+.btn.small-btn {
+    padding: 9px 14px;
+    font-size: 13px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--gold-light);
+    font-weight: bold;
+}
+
+.input {
+    width: 100%;
+    border: 1px solid #715247;
+    border-radius: 8px;
+    background: #211a18;
+    color: white;
+    padding: 13px 14px;
+    outline: none;
+}
+
+.input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(215,164,91,0.12);
+}
+
+.input::placeholder {
+    color: #8b7a70;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.actions .btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+.back-button {
+    margin-bottom: 20px;
+}
+
+.setting-section {
+    border: 1px solid #61473c;
+    background: rgba(255,255,255,0.025);
+    padding: 18px;
+    border-radius: 10px;
+    margin-bottom: 17px;
+}
+
+.setting-section h3 {
+    color: var(--gold-light);
+    margin: 0 0 15px;
+    font-size: 17px;
+}
+
+.radio-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+.radio-row label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+.range-row {
+    margin: 15px 0;
+}
+
+.range-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+
+.range-heading strong {
+    color: var(--gold-light);
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--gold);
+    cursor: pointer;
+}
+
+.small {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 7px;
+}
+
+.role-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 12px 0;
+}
+
+.role-row select {
+    width: 90px;
+    padding: 8px;
+    background: #211a18;
+    color: white;
+    border: 1px solid #715247;
+    border-radius: 7px;
+}
+
+.summary {
+    white-space: pre-line;
+    line-height: 1.7;
+    background: #211a18;
+    border: 1px solid #61473c;
+    border-radius: 9px;
+    padding: 15px;
+    color: #d8c8b9;
+}
+
+.room-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.room-code-box {
+    border: 1px solid var(--gold);
+    background: #241b17;
+    border-radius: 10px;
+    padding: 12px 20px;
+    text-align: center;
+}
+
+.room-code-box small {
+    display: block;
+    color: var(--muted);
+    margin-bottom: 5px;
+}
+
+.room-code {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--gold-light);
+    letter-spacing: 5px;
+}
+
+.room-status {
+    color: var(--gold-light);
+    font-weight: bold;
+}
+
+.player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 13px;
+    margin-top: 20px;
+}
+
+.player-card {
+    position: relative;
+    min-height: 155px;
+    border: 1px solid #63483b;
+    background: #29201d;
+    border-radius: 11px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 8px;
+    gap: 9px;
+    overflow: hidden;
+}
+
+.player-card.is-host {
+    border-color: var(--gold);
+    box-shadow: inset 0 0 15px rgba(215,164,91,0.09);
+}
+
+.host-tag {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    color: var(--gold-light);
+    background: rgba(120,75,32,0.5);
+    border: 1px solid rgba(215,164,91,0.4);
+    border-radius: 5px;
+    padding: 3px 6px;
+    font-size: 10px;
+}
+
+.player-name {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: center;
+    font-weight: bold;
+    color: #f4e7d8;
+}
+
+.avatar {
+    width: 75px;
+    height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-head {
+    width: 49px;
+    height: 49px;
+    border-radius: 50%;
+    background: #d9b18b;
+    border: 2px solid rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 27px;
+    z-index: 2;
+}
+
+.avatar-body {
+    width: 60px;
+    height: 39px;
+    margin-top: -2px;
+    background: #d65b4a;
+    border: 2px solid rgba(0,0,0,0.25);
+}
+
+.shape-triangle {
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.shape-circle {
+    border-radius: 50%;
+}
+
+.shape-square {
+    border-radius: 3px;
+}
+
+.shape-rectangle {
+    width: 48px;
+}
+
+.shape-diamond {
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.shape-star {
+    clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 58%, 80% 100%, 50% 74%, 20% 100%, 32% 58%, 2% 35%, 39% 35%);
+}
+
+.shape-oval {
+    border-radius: 50%;
+    width: 52px;
+}
+
+.shape-hexagon {
+    clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+
+.shape-capsule {
+    border-radius: 30px 30px 5px 5px;
+}
+
+.shape-shield {
+    clip-path: polygon(0 0, 100% 0, 90% 70%, 50% 100%, 10% 70%);
+}
+
+.editor-preview {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 160px;
+    background: #211a18;
+    border: 1px solid #61473c;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.editor-preview .avatar {
+    transform: scale(1.35);
+}
+
+.choice-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.choice {
+    border: 1px solid #705347;
+    background: #2b211e;
+    color: white;
+    border-radius: 7px;
+    min-width: 39px;
+    min-height: 39px;
+    padding: 6px;
+    cursor: pointer;
+}
+
+.choice.selected {
+    border: 2px solid var(--gold-light);
+    box-shadow: 0 0 10px rgba(215,164,91,0.3);
+}
+
+.color-choice {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    padding: 0;
+}
+
+.effect-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.effect-list label {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+}
+
+.message {
+    margin-top: 15px;
+    padding: 11px;
+    border-radius: 7px;
+    background: rgba(169,54,48,0.18);
+    border: 1px solid rgba(169,54,48,0.5);
+    color: #ffd5cb;
+    display: none;
+}
+
+.message.show {
+    display: block;
+}
+
+.footer-note {
+    text-align: center;
+    color: #8f7e73;
+    font-size: 12px;
+    margin-top: 25px;
+}
+
+body.rtl {
+    direction: rtl;
+}
+
+body.rtl .host-tag {
+    right: auto;
+    left: 7px;
+}
+
+/* ===== ЭФФЕКТЫ ===== */
+#fx {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    pointer-events: none;
+}
+
+#fxLight {
+    position: fixed;
+    inset: 0;
+    z-index: 49;
+    pointer-events: none;
+    mix-blend-mode: soft-light;
+    background:
+        radial-gradient(ellipse 55% 45% at 50% -5%, rgba(255,196,110,0.75), transparent 70%),
+        radial-gradient(ellipse 40% 35% at 90% 110%, rgba(255,150,80,0.35), transparent 70%);
+    animation: lampFlicker 5s infinite;
+}
+
+@keyframes lampFlicker {
+    0%, 100% { opacity: 0.9; }
+    6%  { opacity: 0.55; }
+    8%  { opacity: 0.95; }
+    14% { opacity: 0.7; }
+    32% { opacity: 1; }
+    47% { opacity: 0.8; }
+    50% { opacity: 0.4; }
+    52% { opacity: 0.95; }
+    75% { opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #fxLight { animation: none; opacity: 0.8; }
+}
+
+/* ===== ИГРА ===== */
+.panel { animation: panelIn .4s ease both; }
+@keyframes panelIn { from { opacity:0; transform:translateY(14px) scale(.985); } to { opacity:1; transform:none; } }
+.g-top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+.g-top h2 { margin:0; color:var(--gold-light); }
+#gSub { color:var(--muted); font-size:13px; margin-top:4px; }
+#gTimer { font-weight:bold; color:var(--gold-light); min-width:90px; text-align:center; }
+.g-role { padding:8px 14px; border:1px solid var(--gold); border-radius:20px; background:#30231e; font-weight:bold; color:var(--gold-light); }
+.g-role.mafia { border-color:#c45d53; color:#ff9a8d; box-shadow:0 0 14px rgba(169,54,48,.5); }
+.scene { position:relative; border-radius:16px; overflow:hidden; border:1px solid #61473c; transition:background 1.2s, box-shadow 1.2s; }
+.scene.day { background:radial-gradient(ellipse at 50% 0%,#6a4a35,#2a1e1a 70%); box-shadow:inset 0 0 80px rgba(255,190,110,.15); }
+.scene.night { background:radial-gradient(ellipse at 50% 0%,#1d2a52,#070a16 75%); box-shadow:inset 0 0 90px rgba(60,90,200,.25); }
+.scene::before { content:""; position:absolute; inset:0; opacity:0; transition:opacity 1.2s; background-repeat:no-repeat; animation:twinkle 3s infinite alternate;
+  background-image:radial-gradient(1.5px 1.5px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 30% 8%,#cfe,transparent),radial-gradient(1.5px 1.5px at 55% 22%,#fff,transparent),radial-gradient(1px 1px at 78% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 90% 30%,#dff,transparent),radial-gradient(1px 1px at 6% 52%,#fff,transparent),radial-gradient(1px 1px at 94% 66%,#fff,transparent); }
+.scene.night::before { opacity:1; }
+@keyframes twinkle { from { filter:brightness(.6); } to { filter:brightness(1.6); } }
+.sky { position:absolute; top:8px; left:16px; font-size:40px; z-index:1; animation:skyFloat 4s ease-in-out infinite; filter:drop-shadow(0 0 16px rgba(255,220,140,.8)); }
+.scene.night .sky { filter:drop-shadow(0 0 16px rgba(160,190,255,.9)); }
+@keyframes skyFloat { 50% { transform:translateY(-6px); } }
+.seats { position:relative; width:100%; aspect-ratio:1.15; min-height:400px; max-height:640px; }
+.gtable { position:absolute; left:50%; top:54%; width:44%; height:38%; transform:translate(-50%,-50%); border-radius:50%;
+  background:radial-gradient(ellipse,#7a4b2e,#3b2318 75%); border:4px solid #2a1710; box-shadow:0 10px 40px #000a, inset 0 0 40px #0008;
+  display:flex; align-items:center; justify-content:center; animation:candle 2.6s infinite; }
+@keyframes candle { 0%,100% { filter:brightness(1); } 40% { filter:brightness(1.12); } 60% { filter:brightness(.93); } }
+#gTableText { font-weight:900; letter-spacing:6px; color:rgba(240,202,131,.55); text-align:center; padding:10px; }
+.seat { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:2px; width:100px; transition:filter .6s, opacity .6s; }
+.seat-name { background:rgba(0,0,0,.6); border:1px solid rgba(215,164,91,.35); padding:2px 8px; border-radius:10px; font-size:12px; font-weight:bold; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.seat-av { transform:scale(.72); margin:-14px 0; }
+.seat-tag { font-size:11px; color:var(--gold-light); min-height:14px; text-align:center; }
+.seat.me .seat-name { border-color:var(--gold-light); color:var(--gold-light); }
+.seat.mate .seat-name { border-color:#c45d53; color:#ff9a8d; box-shadow:0 0 12px rgba(200,60,50,.7); }
+.seat.enter { animation:seatIn .6s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes seatIn { from { opacity:0; transform:translate(-50%,-30%) scale(.3); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
+.seat.target { cursor:pointer; animation:seatPulse 1.4s infinite; }
+.seat.target:hover { filter:brightness(1.3); }
+@keyframes seatPulse { 50% { transform:translate(-50%,-50%) scale(1.08); filter:drop-shadow(0 0 10px var(--gold)); } }
+.seat.picked .seat-name { border-color:#7fd17a; box-shadow:0 0 12px rgba(120,220,110,.6); }
+.seat.dead { filter:grayscale(1) brightness(.55); opacity:.7; }
+.seat.dead::after { content:"✖"; position:absolute; top:36px; font-size:34px; color:#c9453b; text-shadow:0 0 10px #000; }
+.seat.dying { animation:seatDie 1s ease both; }
+@keyframes seatDie { 20% { transform:translate(-50%,-50%) rotate(-9deg) scale(1.18); filter:none; } 100% { transform:translate(-50%,-50%); } }
+.g-hint { margin-top:14px; text-align:center; padding:12px; background:#211a18; border:1px solid #61473c; border-radius:10px; color:#e6d6c4; }
+.g-checks { margin-top:8px; color:var(--gold-light); font-size:13px; }
+#toasts { position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:70; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; width:min(520px,92vw); }
+.toast { background:rgba(30,22,20,.96); border:1px solid var(--gold); padding:12px 18px; border-radius:10px; text-align:center; box-shadow:0 8px 30px #000a; animation:toastIn .5s ease both, toastOut .5s 4.5s ease forwards; }
+.toast.night { border-color:#6b86e0; background:rgba(14,20,45,.96); }
+.toast.vote { border-color:#c9a14b; } .toast.err { border-color:#c45d53; }
+@keyframes toastIn { from { opacity:0; transform:translateY(-18px) scale(.9); } to { opacity:1; transform:none; } }
+@keyframes toastOut { to { opacity:0; transform:translateY(-12px); } }
+#chatFab { position:fixed; right:18px; bottom:18px; z-index:60; width:58px; height:58px; border-radius:50%; font-size:26px; border:1px solid var(--gold); background:linear-gradient(180deg,#79513c,#4d3026); color:#fff; box-shadow:0 6px 22px #000a; transition:transform .2s; }
+#chatFab:hover { transform:scale(1.1) rotate(-6deg); }
+#chatBadge { position:absolute; top:-4px; right:-4px; background:#c0392b; border-radius:10px; font-size:12px; padding:2px 6px; font-weight:bold; animation:badgePop .3s; }
+@keyframes badgePop { from { transform:scale(0); } to { transform:scale(1); } }
+#chatDrawer { position:fixed; right:18px; bottom:88px; z-index:61; width:min(360px,calc(100vw - 36px)); height:min(460px,62vh); display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:0 14px 50px #000c; animation:panelIn .25s ease both; }
+.cd-head { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border); color:var(--gold-light); }
+#chatLog { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:6px; }
+.chat-msg { background:#382923; border-radius:8px; padding:8px 10px; overflow-wrap:anywhere; animation:toastIn .25s ease both; }
+.chat-msg strong { color:var(--gold-light); }
+.chat-msg.sys { background:transparent; color:var(--muted); font-size:13px; text-align:center; font-style:italic; }
+.chat-msg.maf { background:#4a1f1c; border:1px solid #8c3a33; }
+.cd-input { display:flex; gap:8px; padding:10px; border-top:1px solid var(--border); }
+.cd-input input { min-width:0; flex:1; }
+.confirm-overlay { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.8); display:flex; align-items:center; justify-content:center; padding:20px; animation:panelIn .25s ease both; }
+.confirm-box { width:100%; max-width:340px; background:#30231e; border:1px solid var(--gold); border-radius:13px; padding:22px; text-align:center; }
+
+.gtable { width:46%; height:44%; }
+.reveal { text-align:center; letter-spacing:0; font-weight:bold; color:#f5e9d9; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:13px; padding:4px; }
+.reveal.anim { animation:revealIn .9s cubic-bezier(.2,1.3,.4,1) both; }
+.reveal .avatar { transform:scale(.62); margin:-14px 0; }
+.rv-name { color:var(--gold-light); font-size:15px; }
+.rv-text { color:#ff9a8d; font-size:12px; }
+@keyframes revealIn { 0% { opacity:0; transform:scale(.3) rotate(-8deg); filter:brightness(2); } 60% { filter:drop-shadow(0 0 18px #c9453b); } 100% { opacity:1; transform:none; } }
+.victory { border-radius:16px; padding:26px 18px; text-align:center; border:2px solid; }
+.victory.town { background:radial-gradient(ellipse at 50% 0%,#2f7a3d,#10281a 80%); border-color:#6fd17f; animation:victoryIn .8s cubic-bezier(.2,1.3,.4,1) both, greenGlow 2.4s .8s infinite; }
+.victory.mafia { background:radial-gradient(ellipse at 50% 0%,#8a1c18,#2a0707 80%); border-color:#e0554b; animation:victoryIn .8s cubic-bezier(.2,1.3,.4,1) both, redPulse 1.5s .8s infinite; }
+@keyframes victoryIn { from { opacity:0; transform:scale(.85); } to { opacity:1; transform:none; } }
+@keyframes greenGlow { 0%,100% { box-shadow:0 0 30px rgba(90,220,120,.35); } 50% { box-shadow:0 0 70px rgba(120,255,150,.7); } }
+@keyframes redPulse { 0%,100% { box-shadow:0 0 40px rgba(230,50,40,.5); } 50% { box-shadow:0 0 100px rgba(255,60,45,.95); } }
+.victory h2 { font-size:clamp(28px,6vw,48px); margin:0 0 20px; color:#fff; text-shadow:0 0 24px currentColor; }
+.v-row { margin:14px 0; }
+.v-label { color:#f3e3c7; font-weight:bold; margin-bottom:6px; }
+.v-list { display:flex; flex-wrap:wrap; gap:14px; justify-content:center; }
+.v-p { display:flex; flex-direction:column; align-items:center; gap:2px; font-weight:bold; animation:vpIn .6s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes vpIn { from { opacity:0; transform:translateY(20px) scale(.5); } to { opacity:1; transform:none; } }
+
+#eyeFab { position:fixed; right:88px; bottom:18px; z-index:60; width:58px; height:58px; border-radius:50%; padding:14px; border:1px solid var(--gold); background:linear-gradient(180deg,#403330,#29201e); color:var(--gold-light); box-shadow:0 6px 22px #000a; transition:transform .2s; }
+#eyeFab:hover { transform:scale(1.1); }
+#eyeFab svg, #eyesCover svg { width:100%; height:100%; }
+#eyesCover { position:fixed; inset:0; z-index:200; background:#000; display:flex; align-items:center; justify-content:center; cursor:pointer; animation:coverIn .25s ease both; }
+#eyesCover svg { width:min(45vw,230px); height:auto; color:#ddd; filter:drop-shadow(0 0 22px rgba(255,255,255,.35)); animation:eyeBreath 3s ease-in-out infinite; }
+@keyframes coverIn { from { opacity:0; } to { opacity:1; } }
+@keyframes eyeBreath { 50% { transform:scale(1.07); } }
+#rulesBody h3 { color:var(--gold-light); margin:24px 0 8px; border-bottom:1px solid #61473c; padding-bottom:6px; }
+#rulesBody p { line-height:1.65; color:#e6d6c4; margin:8px 0; }
+#rulesBody strong { color:var(--gold-light); }
+
+.avatar { position:relative; }
+.avatar.has-bg { border-radius:16px; }
+.avatar-hat { position:absolute; left:50%; top:-12px; transform:translateX(-50%); font-size:30px; z-index:3; pointer-events:none; line-height:1; }
+.avatar-badge { position:absolute; left:50%; top:66px; transform:translate(-50%,-50%); font-size:18px; z-index:3; pointer-events:none; line-height:1; }
+.account-bar { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+.account-bar .btn { padding:8px 14px; font-size:13px; }
+.acc-name { font-weight:bold; color:var(--gold-light); }
+.shop-top { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+.shop-coins { font-size:22px; font-weight:bold; color:var(--gold-light); }
+.shop-name { text-align:center; font-weight:bold; font-size:18px; margin-bottom:14px; }
+.shop-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; margin-top:14px; }
+.shop-item { border:2px solid; border-radius:11px; background:#29201d; padding:10px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:transform .2s, box-shadow .2s; animation:vpIn .4s both; }
+.shop-item:hover { transform:translateY(-3px); }
+.shop-item.sel { box-shadow:0 0 16px currentColor; }
+.item-chip { font-size:26px; min-width:54px; min-height:54px; display:flex; align-items:center; justify-content:center; }
+.chip-dot { width:30px; height:30px; border-radius:50%; display:block; }
+.chip-bg { width:34px; height:34px; border-radius:9px; display:block; }
+.rar-label { font-size:12px; font-weight:bold; }
+.price { color:var(--gold-light); font-weight:bold; }
+.v-reward { margin-top:18px; font-size:22px; font-weight:bold; color:#ffe08a; animation:vpIn .6s .8s both; }
+.rv-role { margin-top:2px; color:var(--gold-light); font-size:13px; animation:vpIn .6s both; }
+
+.seo-text { text-align:center; color:#7d6e64; font-size:11px; line-height:1.6; margin-top:14px; }
+
+@media (max-width: 600px) {
+    .panel {
+        padding: 20px 15px;
+    }
+
+    .logo {
+        letter-spacing: 4px;
+    }
+
+    .subtitle {
+        letter-spacing: 2px;
+    }
+
+    .player-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+</style>
+</head>
+
+<body>
+<div id="fxLight"></div>
+<canvas id="fx"></canvas>
+<div id="toasts"></div>
+<button id="eyeFab" class="hidden" onclick="closeEyes()"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 28c8 13 44 13 52 0"/><path d="M13 39l-5 8M32 43v10M51 39l5 8"/></svg></button>
+<button id="chatFab" class="hidden" onclick="toggleChat()">💬<span id="chatBadge" class="hidden">0</span></button>
+<div id="chatDrawer" class="hidden">
+    <div class="cd-head"><strong id="chatTitle">💬 Чат</strong><button class="btn secondary small-btn" onclick="toggleChat()">✕</button></div>
+    <div id="chatLog"></div>
+    <div class="cd-input"><input id="chatInput" class="input" maxlength="250" placeholder="Сообщение..."><button class="btn small-btn" onclick="sendChat()">➤</button></div>
+</div>
+<div class="page">
+<div class="container">
+
+<!-- ГЛАВНОЕ МЕНЮ -->
+<section id="mainPanel" class="panel">
+    <div id="accountBar" class="account-bar"></div>
+    <h1 class="logo">MAFIA</h1>
+    <p class="subtitle">THE TOWN IS NEVER ASLEEP</p>
+
+    <div class="menu-buttons">
+        <button class="btn" onclick="showPanel('createPanel')" data-i18n="createGame">Создать игру</button>
+        <button class="btn" onclick="showPanel('joinPanel')" data-i18n="joinGame">Войти в игру</button>
+        <button class="btn secondary" onclick="openEditor('menu')" data-i18n="characterEditor">Редактор персонажа</button>
+        <button class="btn secondary" onclick="showPanel('settingsPanel')" data-i18n="settings">Настройки</button>
+        <button class="btn secondary" onclick="openShop()" data-i18n="shop">Магазин</button>
+        <button class="btn secondary" onclick="showPanel('rulesPanel')" data-i18n="rules">Правила игры</button>
+    </div>
+
+    <p class="footer-note">MAFIA — THE TOWN IS NEVER ASLEEP</p>
+    <p class="seo-text">MAFIA — The Town Is Never Asleep is a free online multiplayer Mafia (Werewolf) game. Play with friends in your browser: create a room, share the code and find the mafia before the night falls. Roles: Mafia, Sheriff, Doctor and Citizens. No download needed.<br>MAFIA — The Town Is Never Asleep — бесплатная онлайн-игра «Мафия» для компании друзей. Играйте в браузере: создайте комнату, отправьте друзьям код и найдите мафию до наступления ночи. Роли: мафия, шериф, доктор и мирные жители. Установка не нужна.</p>
+</section>
+
+<!-- СОЗДАНИЕ ИГРЫ -->
+<section id="createPanel" class="panel hidden">
+    <button class="btn secondary small-btn back-button" onclick="showPanel('mainPanel')" data-i18n="back">Назад</button>
+    <h2 class="section-title" data-i18n="createGame">Создать игру</h2>
+
+    <div class="form-group">
+        <label data-i18n="yourName">Ваше имя</label>
+        <input class="input" id="hostName" maxlength="20" placeholder="Введите имя">
+    </div>
+
+    <div class="actions">
+        <button class="btn" onclick="continueToGameSettings()" data-i18n="continue">Продолжить</button>
+    </div>
+    <div id="createMessage" class="message"></div>
+</section>
+
+<!-- НАСТРОЙКИ НОВОЙ ИГРЫ -->
+<section id="gameSettingsPanel" class="panel hidden">
+    <button class="btn secondary small-btn back-button" onclick="showPanel('createPanel')" data-i18n="back">Назад</button>
+    <h2 class="section-title" data-i18n="gameSettings">Настройки игры</h2>
+
+    <div class="setting-section">
+        <h3 data-i18n="controlMode">Режим игры</h3>
+        <div class="radio-row">
+            <label>
+                <input type="radio" name="gameMode" value="manual" checked onchange="updateSettingsSummary()">
+                <span data-i18n="manual">Ручной</span>
+            </label>
+            <label>
+                <input type="radio" name="gameMode" value="auto" onchange="updateSettingsSummary()">
+                <span data-i18n="automatic">Автоматический</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="setting-section">
+        <h3 data-i18n="maxPlayersTitle">Максимум игроков</h3>
+        <div class="range-row">
+            <div class="range-heading">
+                <span data-i18n="maxPlayersLabel">Лимит комнаты</span>
+                <strong id="maxPlayersValue">30</strong>
+            </div>
+            <input type="range" id="maxPlayers" min="4" max="100" step="1" value="30" oninput="updateMaxPlayersLabel()">
+            <div class="small" data-i18n="maxPlayersLimit">От 4 до 100 игроков, включая ведущего</div>
+        </div>
+    </div>
+
+    <div class="setting-section">
+        <h3 data-i18n="timers">Таймеры</h3>
+
+        <div class="range-row">
+            <div class="range-heading">
+                <span data-i18n="discussion">Обсуждение</span>
+                <strong id="discussionValue">60 сек.</strong>
+            </div>
+            <input type="range" id="discussionTime" min="15" max="300" value="60" oninput="updateTimerLabels()">
+        </div>
+
+        <div class="range-row">
+            <div class="range-heading">
+                <span data-i18n="voting">Голосование</span>
+                <strong id="votingValue">60 сек.</strong>
+            </div>
+            <input type="range" id="votingTime" min="20" max="1800" value="60" oninput="updateTimerLabels()">
+        </div>
+    </div>
+
+    <div class="setting-section">
+        <h3 data-i18n="roles">Роли</h3>
+
+        <div class="role-row">
+            <span data-i18n="mafia">Мафия</span>
+            <select id="mafiaCount" onchange="updateSettingsSummary()">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+
+        <div class="role-row">
+            <span data-i18n="sheriff">Шериф</span>
+            <select id="sheriffCount" onchange="updateSettingsSummary()">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+
+        <div class="role-row">
+            <span data-i18n="doctor">Доктор</span>
+            <select id="doctorCount" onchange="updateSettingsSummary()">
+                <option value="1" selected>1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+
+        <div class="small" data-i18n="remainingPlayers">Остальные игроки становятся мирными жителями.</div>
+    </div>
+
+    <div class="setting-section">
+        <h3 data-i18n="preview">Предпросмотр настроек</h3>
+        <div id="settingsPreview" class="summary"></div>
+    </div>
+
+    <div class="actions">
+        <button class="btn" onclick="createRoomNow()" data-i18n="done">Готово</button>
+        <button class="btn secondary" onclick="showPanel('createPanel')" data-i18n="back">Назад</button>
+    </div>
+
+    <div id="gameSettingsMessage" class="message"></div>
+</section>
+
+<!-- ВХОД В ИГРУ -->
+<section id="joinPanel" class="panel hidden">
+    <button class="btn secondary small-btn back-button" onclick="showPanel('mainPanel')" data-i18n="back">Назад</button>
+    <h2 class="section-title" data-i18n="joinGame">Войти в игру</h2>
+
+    <div class="form-group">
+        <label data-i18n="yourName">Ваше имя</label>
+        <input class="input" id="joinName" maxlength="20" placeholder="Введите имя">
+    </div>
+
+    <div class="form-group">
+        <label data-i18n="roomCode">Код комнаты</label>
+        <input class="input" id="joinCode" maxlength="6" inputmode="numeric" placeholder="000000">
+    </div>
+
+    <div class="actions">
+        <button class="btn" onclick="joinRoomNow()" data-i18n="join">Войти</button>
+    </div>
+    <div id="joinMessage" class="message"></div>
+</section>
+
+<!-- РЕДАКТОР ПЕРСОНАЖА -->
+<section id="editorPanel" class="panel hidden">
+    <button class="btn secondary small-btn back-button" onclick="closeEditor()" data-i18n="back">Назад</button>
+    <h2 class="section-title" data-i18n="characterEditor">Редактор персонажа</h2>
+
+    <div class="editor-preview">
+        <div id="editorPreview"></div>
+    </div>
+
+    <div class="setting-section">
+        <h3 data-i18n="chooseFace">Выбери лицо</h3>
+        <div id="faceChoices" class="choice-grid"></div>
+    </div>
+
+    <div class="setting-section">
+        <h3 data-i18n="chooseBody">Выбери форму тела</h3>
+        <div id="shapeChoices" class="choice-grid"></div>
+    </div>
+
+    <div class="setting-section">
+        <h3 data-i18n="chooseColor">Выбери цвет</h3>
+        <div id="colorChoices" class="choice-grid"></div>
+    </div>
+
+    <div id="cosChoosers"></div>
+
+    <div class="actions">
+        <button class="btn green" onclick="saveCharacter()" data-i18n="save">Сохранить</button>
+    </div>
+</section>
+
+<!-- ОБЩИЕ НАСТРОЙКИ -->
+<section id="settingsPanel" class="panel hidden">
+    <button class="btn secondary small-btn back-button" onclick="showPanel('mainPanel')" data-i18n="back">Назад</button>
+    <h2 class="section-title" data-i18n="settings">Настройки</h2>
+
+    <div class="setting-section">
+        <h3 data-i18n="language">Язык</h3>
+        <select class="input" id="languageSelect" onchange="changeLanguage(this.value)">
+            <option value="ru">Русский</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="ja">日本語</option>
+            <option value="fr">Français</option>
+            <option value="he">עברית</option>
+        </select>
+    </div>
+
+    <div class="setting-section">
+        <h3 data-i18n="effects">Эффекты</h3>
+        <div class="effect-list">
+            <label><input type="checkbox" id="effectLight" onchange="saveEffects()"> <span data-i18n="flickeringLight">Мерцающий свет</span></label>
+            <label><input type="checkbox" id="effectDust" onchange="saveEffects()"> <span data-i18n="floatingDust">Парящая пыль</span></label>
+            <label><input type="checkbox" id="effectStones" onchange="saveEffects()"> <span data-i18n="fallingStones">Падающие камни</span></label>
+            <label><input type="checkbox" id="effectShadows" onchange="saveEffects()"> <span data-i18n="movingShadows">Движущиеся тени</span></label>
+        </div>
+
+        <div class="actions">
+            <button class="btn small-btn" onclick="setAllEffects(true)" data-i18n="enableAll">Включить всё</button>
+            <button class="btn secondary small-btn" onclick="setAllEffects(false)" data-i18n="disableAll">Выключить всё</button>
+        </div>
+    </div>
+</section>
+
+<!-- КОМНАТА -->
+<section id="roomPanel" class="panel hidden">
+    <div class="room-header">
+        <div>
+            <h2 class="section-title" style="text-align:left;margin-bottom:7px" data-i18n="gameRoom">Игровая комната</h2>
+            <div class="room-status" id="roomStatus">0 / 30 игроков</div>
+        </div>
+
+        <div class="room-code-box">
+            <small data-i18n="roomCode">Код комнаты</small>
+            <div class="room-code" id="roomCodeDisplay">------</div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn secondary small-btn" onclick="copyRoomCode()" data-i18n="copyCode">Скопировать код</button>
+        <button class="btn secondary small-btn" onclick="openEditor('room')" data-i18n="editCharacter">Изменить персонажа</button>
+    </div>
+
+    <h3 data-i18n="players">Игроки</h3>
+    <div id="playerGrid" class="player-grid"></div>
+
+    <div class="setting-section" style="margin-top:25px">
+        <h3 data-i18n="gameSettings">Настройки игры</h3>
+        <div id="roomSettingsSummary" class="summary"></div>
+    </div>
+
+    <div class="actions">
+        <button id="startBtn" class="btn green hidden" onclick="startGame()">▶ Начать игру</button>
+        <button class="btn red" onclick="leaveRoom()" data-i18n="leaveRoom">Покинуть комнату</button>
+    </div>
+
+    <div id="roomMessage" class="message"></div>
+</section>
+
+<!-- АККАУНТ -->
+<section id="authPanel" class="panel hidden">
+    <button class="btn secondary small-btn back-button" onclick="showPanel('mainPanel')" data-i18n="back">Назад</button>
+    <h2 class="section-title" data-i18n="account">Аккаунт</h2>
+    <div class="form-group"><label data-i18n="username">Имя пользователя</label><input class="input" id="authUser" maxlength="16" autocomplete="username"></div>
+    <div class="form-group"><label data-i18n="password">Пароль</label><input class="input" id="authPass" type="password" maxlength="100" autocomplete="current-password"></div>
+    <div class="actions">
+        <button class="btn" onclick="doAuth('login')" data-i18n="login">Войти</button>
+        <button class="btn secondary" onclick="doAuth('register')" data-i18n="register">Создать аккаунт</button>
+    </div>
+    <div id="authMessage" class="message"></div>
+</section>
+
+<!-- МАГАЗИН -->
+<section id="shopPanel" class="panel hidden">
+    <button class="btn secondary small-btn back-button" onclick="showPanel('mainPanel')" data-i18n="back">Назад</button>
+    <h2 class="section-title" data-i18n="shop">Магазин</h2>
+    <div class="shop-top"><div id="shopCoins" class="shop-coins"></div><div class="small" data-i18n="shopTry"></div></div>
+    <div class="editor-preview"><div id="shopPreview"></div></div>
+    <div id="shopName" class="shop-name"></div>
+    <div id="shopTabs" class="actions"></div>
+    <div id="shopGrid" class="shop-grid"></div>
+</section>
+
+<!-- ПРАВИЛА -->
+<section id="rulesPanel" class="panel hidden">
+    <button class="btn secondary small-btn back-button" onclick="showPanel('mainPanel')" data-i18n="back">Назад</button>
+    <h2 class="section-title" data-i18n="rules">Правила игры</h2>
+    <div id="rulesBody"></div>
+</section>
+
+<!-- ИГРА -->
+<section id="gamePanel" class="panel hidden">
+    <div class="g-top">
+        <div><h2 id="gTitle" style="margin:0"></h2><div id="gSub"></div></div>
+        <div id="gTimer"></div>
+        <div id="gRole" class="g-role"></div>
+    </div>
+    <div id="gScene" class="scene day">
+        <div id="gSky" class="sky">☀️</div>
+        <div id="gSeats" class="seats"><div class="gtable"><div id="gTableText">MAFIA</div></div></div>
+    </div>
+    <div id="gVictory" class="victory hidden"></div>
+    <div id="gHint" class="g-hint"></div>
+    <div class="actions">
+        <button id="gNext" class="btn hidden" onclick="hostNext()">Следующая фаза ▶</button>
+        <button id="gReset" class="btn green hidden" onclick="hostReset()">Вернуть в лобби</button>
+        <button id="gLeave" class="btn red small-btn" onclick="leaveRoom()">Покинуть игру</button>
+    </div>
+</section>
+
+</div>
+</div>
+
+<script>
+/* =========================
+   ПЕРЕВОДЫ
+========================= */
+
+const translations = {
+    ru: {
+        createGame:"Создать игру", joinGame:"Войти в игру",
+        characterEditor:"Редактор персонажа", settings:"Настройки",
+        back:"Назад", yourName:"Ваше имя", continue:"Продолжить",
+        gameSettings:"Настройки игры", controlMode:"Режим игры",
+        manual:"Ручной", automatic:"Автоматический",
+        maxPlayersTitle:"Максимум игроков", maxPlayersLabel:"Лимит комнаты",
+        maxPlayersLimit:"От 4 до 100 игроков, включая ведущего",
+        timers:"Таймеры", discussion:"Обсуждение", voting:"Голосование",
+        roles:"Роли", mafia:"Мафия", sheriff:"Шериф", doctor:"Доктор",
+        remainingPlayers:"Остальные игроки становятся мирными жителями.",
+        preview:"Предпросмотр настроек", done:"Готово", roomCode:"Код комнаты",
+        join:"Войти", chooseFace:"Выбери лицо", chooseBody:"Выбери форму тела",
+        chooseColor:"Выбери цвет", save:"Сохранить", language:"Язык",
+        effects:"Эффекты", flickeringLight:"Мерцающий свет",
+        floatingDust:"Парящая пыль", fallingStones:"Падающие камни",
+        movingShadows:"Движущиеся тени", enableAll:"Включить всё",
+        disableAll:"Выключить всё", gameRoom:"Игровая комната",
+        players:"Игроки", copyCode:"Скопировать код",
+        editCharacter:"Изменить персонажа", leaveRoom:"Покинуть комнату",
+        playerCount:"игроков", host:"Ведущий", waiting:"Ожидание игроков",
+        roleCount:"Количество ролей", citizens:"Мирные жители",
+        mode:"Режим", manualSummary:"Ручной", autoSummary:"Автоматический",
+        seconds:"сек.", roomCreated:"Комната создана!",
+        joined:"Вы вошли в комнату!", enterName:"Введите имя.",
+        enterCode:"Введите шестизначный код комнаты.",
+        connectionError:"Нет соединения с сервером.",
+        createError:"Не удалось создать комнату.",
+        joinError:"Не удалось войти в комнату.",
+        maxRolesError:"Количество ролей не может быть больше лимита игроков.",
+        copied:"Код комнаты скопирован.",
+        player:"Игрок", roomFull:"Комната заполнена.",
+        disconnected:"Соединение с сервером потеряно.",
+        remaining:"Остальные"
+    },
+
+    en: {
+        createGame:"Create Game", joinGame:"Join Game",
+        characterEditor:"Character Editor", settings:"Settings",
+        back:"Back", yourName:"Your name", continue:"Continue",
+        gameSettings:"Game Settings", controlMode:"Game mode",
+        manual:"Manual", automatic:"Automatic",
+        maxPlayersTitle:"Maximum players", maxPlayersLabel:"Room limit",
+        maxPlayersLimit:"From 4 to 100 players, including the host",
+        timers:"Timers", discussion:"Discussion", voting:"Voting",
+        roles:"Roles", mafia:"Mafia", sheriff:"Sheriff", doctor:"Doctor",
+        remainingPlayers:"All other players become citizens.",
+        preview:"Settings preview", done:"Done", roomCode:"Room code",
+        join:"Join", chooseFace:"Choose a face", chooseBody:"Choose a body shape",
+        chooseColor:"Choose a color", save:"Save", language:"Language",
+        effects:"Effects", flickeringLight:"Flickering light",
+        floatingDust:"Floating dust", fallingStones:"Falling stones",
+        movingShadows:"Moving shadows", enableAll:"Enable all",
+        disableAll:"Disable all", gameRoom:"Game Room",
+        players:"Players", copyCode:"Copy code",
+        editCharacter:"Edit character", leaveRoom:"Leave room",
+        playerCount:"players", host:"Host", waiting:"Waiting for players",
+        roleCount:"Number of roles", citizens:"Citizens",
+        mode:"Mode", manualSummary:"Manual", autoSummary:"Automatic",
+        seconds:"sec.", roomCreated:"Room created!",
+        joined:"You joined the room!", enterName:"Enter your name.",
+        enterCode:"Enter the six-digit room code.",
+        connectionError:"No connection to the server.",
+        createError:"Could not create the room.",
+        joinError:"Could not join the room.",
+        maxRolesError:"The number of roles cannot exceed the room limit.",
+        copied:"Room code copied.",
+        player:"Player", roomFull:"The room is full.",
+        disconnected:"Connection to the server lost.",
+        remaining:"Remaining"
+    },
+
+    es: {
+        createGame:"Crear partida", joinGame:"Unirse a partida",
+        characterEditor:"Editor de personaje", settings:"Ajustes",
+        back:"Volver", yourName:"Tu nombre", continue:"Continuar",
+        gameSettings:"Ajustes del juego", controlMode:"Modo de juego",
+        manual:"Manual", automatic:"Automático",
+        maxPlayersTitle:"Máximo de jugadores", maxPlayersLabel:"Límite de sala",
+        maxPlayersLimit:"De 4 a 100 jugadores, incluido el anfitrión",
+        timers:"Temporizadores", discussion:"Debate", voting:"Votación",
+        roles:"Roles", mafia:"Mafia", sheriff:"Sheriff", doctor:"Doctor",
+        remainingPlayers:"Los demás jugadores serán ciudadanos.",
+        preview:"Vista previa", done:"Listo", roomCode:"Código de sala",
+        join:"Entrar", chooseFace:"Elige una cara", chooseBody:"Elige una forma",
+        chooseColor:"Elige un color", save:"Guardar", language:"Idioma",
+        effects:"Efectos", flickeringLight:"Luz parpadeante",
+        floatingDust:"Polvo flotante", fallingStones:"Piedras cayendo",
+        movingShadows:"Sombras en movimiento", enableAll:"Activar todo",
+        disableAll:"Desactivar todo", gameRoom:"Sala de juego",
+        players:"Jugadores", copyCode:"Copiar código",
+        editCharacter:"Editar personaje", leaveRoom:"Salir de la sala",
+        playerCount:"jugadores", host:"Anfitrión", waiting:"Esperando jugadores",
+        roleCount:"Número de roles", citizens:"Ciudadanos",
+        mode:"Modo", manualSummary:"Manual", autoSummary:"Automático",
+        seconds:"seg.", roomCreated:"¡Sala creada!",
+        joined:"¡Te has unido a la sala!", enterName:"Escribe tu nombre.",
+        enterCode:"Escribe el código de seis dígitos.",
+        connectionError:"No hay conexión con el servidor.",
+        createError:"No se pudo crear la sala.",
+        joinError:"No se pudo entrar en la sala.",
+        maxRolesError:"Los roles no pueden superar el límite de jugadores.",
+        copied:"Código copiado.", player:"Jugador", roomFull:"La sala está llena.",
+        disconnected:"Se perdió la conexión con el servidor.",
+        remaining:"Restantes"
+    },
+
+    ja: {
+        createGame:"ゲームを作成", joinGame:"ゲームに参加",
+        characterEditor:"キャラクター編集", settings:"設定",
+        back:"戻る", yourName:"名前", continue:"続ける",
+        gameSettings:"ゲーム設定", controlMode:"ゲームモード",
+        manual:"手動", automatic:"自動",
+        maxPlayersTitle:"最大プレイヤー数", maxPlayersLabel:"ルーム上限",
+        maxPlayersLimit:"ホストを含めて4〜100人",
+        timers:"タイマー", discussion:"話し合い", voting:"投票",
+        roles:"役職", mafia:"マフィア", sheriff:"警察", doctor:"医者",
+        remainingPlayers:"残りのプレイヤーは市民になります。",
+        preview:"設定の確認", done:"完了", roomCode:"ルームコード",
+        join:"参加", chooseFace:"顔を選ぶ", chooseBody:"体の形を選ぶ",
+        chooseColor:"色を選ぶ", save:"保存", language:"言語",
+        effects:"エフェクト", flickeringLight:"点滅する光",
+        floatingDust:"浮遊するほこり", fallingStones:"落ちる石",
+        movingShadows:"動く影", enableAll:"すべて有効",
+        disableAll:"すべて無効", gameRoom:"ゲームルーム",
+        players:"プレイヤー", copyCode:"コードをコピー",
+        editCharacter:"キャラクターを編集", leaveRoom:"退室",
+        playerCount:"人", host:"ホスト", waiting:"プレイヤーを待っています",
+        roleCount:"役職の数", citizens:"市民",
+        mode:"モード", manualSummary:"手動", autoSummary:"自動",
+        seconds:"秒", roomCreated:"ルームを作成しました！",
+        joined:"ルームに参加しました！", enterName:"名前を入力してください。",
+        enterCode:"6桁のコードを入力してください。",
+        connectionError:"サーバーに接続できません。",
+        createError:"ルームを作成できませんでした。",
+        joinError:"ルームに参加できませんでした。",
+        maxRolesError:"役職の数がプレイヤー上限を超えています。",
+        copied:"コードをコピーしました。", player:"プレイヤー",
+        roomFull:"ルームは満員です。", disconnected:"サーバー接続が切れました。",
+        remaining:"残り"
+    },
+
+    fr: {
+        createGame:"Créer une partie", joinGame:"Rejoindre une partie",
+        characterEditor:"Éditeur de personnage", settings:"Paramètres",
+        back:"Retour", yourName:"Votre nom", continue:"Continuer",
+        gameSettings:"Paramètres du jeu", controlMode:"Mode de jeu",
+        manual:"Manuel", automatic:"Automatique",
+        maxPlayersTitle:"Nombre maximum de joueurs", maxPlayersLabel:"Limite du salon",
+        maxPlayersLimit:"De 4 à 100 joueurs, hôte compris",
+        timers:"Minuteurs", discussion:"Discussion", voting:"Vote",
+        roles:"Rôles", mafia:"Mafia", sheriff:"Sheriff", doctor:"Docteur",
+        remainingPlayers:"Les autres joueurs deviennent citoyens.",
+        preview:"Aperçu des paramètres", done:"Terminé", roomCode:"Code du salon",
+        join:"Rejoindre", chooseFace:"Choisir un visage", chooseBody:"Choisir une forme",
+        chooseColor:"Choisir une couleur", save:"Enregistrer", language:"Langue",
+        effects:"Effets", flickeringLight:"Lumière vacillante",
+        floatingDust:"Poussière flottante", fallingStones:"Pierres qui tombent",
+        movingShadows:"Ombres mouvantes", enableAll:"Tout activer",
+        disableAll:"Tout désactiver", gameRoom:"Salon de jeu",
+        players:"Joueurs", copyCode:"Copier le code",
+        editCharacter:"Modifier le personnage", leaveRoom:"Quitter le salon",
+        playerCount:"joueurs", host:"Hôte", waiting:"En attente des joueurs",
+        roleCount:"Nombre de rôles", citizens:"Citoyens",
+        mode:"Mode", manualSummary:"Manuel", autoSummary:"Automatique",
+        seconds:"sec.", roomCreated:"Salon créé !",
+        joined:"Vous avez rejoint le salon !", enterName:"Entrez votre nom.",
+        enterCode:"Entrez le code à six chiffres.",
+        connectionError:"Pas de connexion au serveur.",
+        createError:"Impossible de créer le salon.",
+        joinError:"Impossible de rejoindre le salon.",
+        maxRolesError:"Le nombre de rôles ne peut pas dépasser la limite.",
+        copied:"Code copié.", player:"Joueur", roomFull:"Le salon est complet.",
+        disconnected:"Connexion au serveur perdue.", remaining:"Restants"
+    },
+
+    he: {
+        createGame:"צור משחק", joinGame:"הצטרף למשחק",
+        characterEditor:"עורך דמות", settings:"הגדרות",
+        back:"חזרה", yourName:"השם שלך", continue:"המשך",
+        gameSettings:"הגדרות המשחק", controlMode:"מצב משחק",
+        manual:"ידני", automatic:"אוטומטי",
+        maxPlayersTitle:"מספר שחקנים מרבי", maxPlayersLabel:"מגבלת החדר",
+        maxPlayersLimit:"מ־4 עד 100 שחקנים, כולל המארח",
+        timers:"טיימרים", discussion:"דיון", voting:"הצבעה",
+        roles:"תפקידים", mafia:"מאפיה", sheriff:"שריף", doctor:"רופא",
+        remainingPlayers:"שאר השחקנים יהיו אזרחים.",
+        preview:"תצוגה מקדימה", done:"סיום", roomCode:"קוד חדר",
+        join:"הצטרף", chooseFace:"בחר פנים", chooseBody:"בחר צורת גוף",
+        chooseColor:"בחר צבע", save:"שמור", language:"שפה",
+        effects:"אפקטים", flickeringLight:"אור מהבהב",
+        floatingDust:"אבק מרחף", fallingStones:"אבנים נופלות",
+        movingShadows:"צללים זזים", enableAll:"הפעל הכול",
+        disableAll:"כבה הכול", gameRoom:"חדר משחק",
+        players:"שחקנים", copyCode:"העתק קוד",
+        editCharacter:"עריכת דמות", leaveRoom:"עזוב חדר",
+        playerCount:"שחקנים", host:"מארח", waiting:"ממתינים לשחקנים",
+        roleCount:"מספר תפקידים", citizens:"אזרחים",
+        mode:"מצב", manualSummary:"ידני", autoSummary:"אוטומטי",
+        seconds:"שנ׳", roomCreated:"החדר נוצר!",
+        joined:"הצטרפת לחדר!", enterName:"הכנס שם.",
+        enterCode:"הכנס קוד בן שש ספרות.",
+        connectionError:"אין חיבור לשרת.",
+        createError:"לא ניתן ליצור חדר.",
+        joinError:"לא ניתן להצטרף לחדר.",
+        maxRolesError:"מספר התפקידים לא יכול לעלות על מגבלת השחקנים.",
+        copied:"הקוד הועתק.", player:"שחקן", roomFull:"החדר מלא.",
+        disconnected:"החיבור לשרת נותק.", remaining:"נותרו"
+    }
+};
+
+/* ===== переводы игры ===== */
+Object.assign(translations.ru, {
+phase_night:"Ночь", phase_morning:"Утро", phase_discussion:"День — обсуждение", phase_voting:"Голосование", phase_finished:"Игра окончена",
+round:"Раунд", youHost:"Вы — ведущий", you:"Вы", citizen:"Мирный житель", startGame:"Начать игру", nextBtn:"Далее", toLobby:"Вернуть в лобби",
+leaveGame:"Покинуть игру", chatTitle:"Чат", chatPh:"Сообщение...", enterNamePh:"Введите имя", minutes:"мин.", yes:"Да", no:"Нет",
+askVote:"Проголосовать за {n}?", askMafia:"Убить {n}?", askDoctor:"Спасти {n}?", askSheriff:"Проверить {n}?",
+hHostNight:"Город спит. Мафия, доктор и шериф делают выбор. Вы следите за игрой.", hHostMorning:"Наступило утро. Нажмите «Далее», чтобы узнать, что произошло ночью.",
+hHostDiscussion:"Игроки обсуждают, кто мафия. Вы следите за игрой.", hHostVoting:"Идёт голосование ({a} / {b}).", hDead:"💀 Вы выбыли. Наблюдайте за игрой.",
+hVote:"⚖️ Нажмите на игрока, за которого голосуете.", hMafia:"🔫 Выберите жертву.", hDoctor:"💉 Выберите, кого спасти этой ночью.", hSheriff:"⭐ Выберите, кого проверить.",
+hSleep:"Город спит. Закройте глаза… 😴", hActed:"Выбор сделан. Ждите утра…", hVoted:"Ваш голос принят. Ждём остальных…", hMorning:"🌅 Наступило утро. Город ждёт новостей…",
+hDiscuss:"Обсуждайте, кто мафия. Чат — кнопка 💬 справа внизу.", checks:"Проверки", mafiaYes:"мафия 🔫", mafiaNo:"не мафия",
+revDied:"Погиб(ла) этой ночью", revNone:"Этой ночью никто не погиб", revSaved:"Доктор спас жертву — никто не погиб",
+townWin:"Мирные победили", mafiaWin:"Мафия победила", was_mafia:"Мафия была:", was_sheriff:"Шериф был:", was_doctor:"Доктор был:",
+aStart:"🌙 Игра началась. Город засыпает…", aExile:"⚖️ Город изгнал {name} — {role}.", aTie:"⚖️ Голоса разделились — никто не изгнан.", aNight:"🌙 Наступает ночь…",
+aLeft:"{name} покинул(а) игру.", aHostLeft:"Ведущий вышел — игра остановлена.", e_notfound:"Комната или игрок не найдены.", e_started:"Игра уже идёт.",
+e_dupname:"Игрок с таким именем уже есть.", e_hostonly:"Это может сделать только ведущий.", e_needplayers:"Нужно минимум {n} игроков, не считая ведущего. Сейчас: {c}.",
+e_toomany:"Слишком много мафии для такого числа игроков.", e_phase:"Сейчас это недоступно.", e_auto:"В автоматическом режиме фазы меняются сами.", e_dead:"Вы выбыли из игры.",
+e_target:"Недопустимый выбор.", e_voted:"Выбор уже сделан.", e_nightchat:"Ночью город молчит 🌙", e_settings:"Проверьте настройки игры.", e_generic:"Ошибка."
+});
+Object.assign(translations.en, {
+phase_night:"Night", phase_morning:"Morning", phase_discussion:"Day — discussion", phase_voting:"Voting", phase_finished:"Game over",
+round:"Round", youHost:"You are the host", you:"You", citizen:"Citizen", startGame:"Start game", nextBtn:"Next", toLobby:"Back to lobby",
+leaveGame:"Leave game", chatTitle:"Chat", chatPh:"Message...", enterNamePh:"Enter name", minutes:"min", yes:"Yes", no:"No",
+askVote:"Vote for {n}?", askMafia:"Kill {n}?", askDoctor:"Save {n}?", askSheriff:"Check {n}?",
+hHostNight:"The town sleeps. Mafia, doctor and sheriff are choosing. You are watching the game.", hHostMorning:"Morning has come. Press “Next” to find out what happened last night.",
+hHostDiscussion:"Players are discussing who the mafia is. You are watching the game.", hHostVoting:"Voting in progress ({a} / {b}).", hDead:"💀 You are out. Watch the game.",
+hVote:"⚖️ Tap the player you vote for.", hMafia:"🔫 Choose a victim.", hDoctor:"💉 Choose who to save tonight.", hSheriff:"⭐ Choose who to check.",
+hSleep:"The town sleeps. Close your eyes… 😴", hActed:"Choice made. Wait for morning…", hVoted:"Your vote is in. Waiting for the others…", hMorning:"🌅 Morning has come. The town awaits news…",
+hDiscuss:"Discuss who the mafia is. Chat is the 💬 button at the bottom right.", checks:"Checks", mafiaYes:"mafia 🔫", mafiaNo:"not mafia",
+revDied:"Died last night", revNone:"Nobody died last night", revSaved:"The doctor saved the victim — nobody died",
+townWin:"Citizens win!", mafiaWin:"Mafia wins!", was_mafia:"The Mafia was:", was_sheriff:"The Sheriff was:", was_doctor:"The Doctor was:",
+aStart:"🌙 The game begins. The town falls asleep…", aExile:"⚖️ The town banished {name} — {role}.", aTie:"⚖️ Votes split — nobody is banished.", aNight:"🌙 Night falls…",
+aLeft:"{name} left the game.", aHostLeft:"The host left — game stopped.", e_notfound:"Room or player not found.", e_started:"The game is already running.",
+e_dupname:"A player with that name already exists.", e_hostonly:"Only the host can do that.", e_needplayers:"At least {n} players are needed, not counting the host. Now: {c}.",
+e_toomany:"Too much mafia for this number of players.", e_phase:"Not available right now.", e_auto:"In automatic mode phases change on their own.", e_dead:"You are out of the game.",
+e_target:"Invalid choice.", e_voted:"Choice already made.", e_nightchat:"At night the town is silent 🌙", e_settings:"Check the game settings.", e_generic:"Error."
+});
+Object.assign(translations.es, {
+phase_night:"Noche", phase_morning:"Mañana", phase_discussion:"Día — debate", phase_voting:"Votación", phase_finished:"Fin de la partida",
+round:"Ronda", youHost:"Eres el anfitrión", you:"Tú", citizen:"Ciudadano", startGame:"Empezar partida", nextBtn:"Siguiente", toLobby:"Volver a la sala",
+leaveGame:"Salir de la partida", chatTitle:"Chat", chatPh:"Mensaje...", enterNamePh:"Escribe tu nombre", minutes:"min", yes:"Sí", no:"No",
+askVote:"¿Votar por {n}?", askMafia:"¿Matar a {n}?", askDoctor:"¿Salvar a {n}?", askSheriff:"¿Investigar a {n}?",
+hHostNight:"La ciudad duerme. Mafia, doctor y sheriff eligen. Tú vigilas la partida.", hHostMorning:"Amanece. Pulsa «Siguiente» para saber qué pasó anoche.",
+hHostDiscussion:"Los jugadores debaten quién es la mafia. Tú vigilas la partida.", hHostVoting:"Votación en curso ({a} / {b}).", hDead:"💀 Estás eliminado. Observa la partida.",
+hVote:"⚖️ Pulsa al jugador por el que votas.", hMafia:"🔫 Elige a la víctima.", hDoctor:"💉 Elige a quién salvar esta noche.", hSheriff:"⭐ Elige a quién investigar.",
+hSleep:"La ciudad duerme. Cierra los ojos… 😴", hActed:"Elección hecha. Espera al amanecer…", hVoted:"Tu voto fue registrado. Esperando al resto…", hMorning:"🌅 Amanece. La ciudad espera noticias…",
+hDiscuss:"Debatid quién es la mafia. El chat está en 💬, abajo a la derecha.", checks:"Investigaciones", mafiaYes:"mafia 🔫", mafiaNo:"no es mafia",
+revDied:"Murió esta noche", revNone:"Esta noche nadie murió", revSaved:"El doctor salvó a la víctima: nadie murió",
+townWin:"¡Ganan los ciudadanos!", mafiaWin:"¡Gana la Mafia!", was_mafia:"La Mafia era:", was_sheriff:"El Sheriff era:", was_doctor:"El Doctor era:",
+aStart:"🌙 Empieza la partida. La ciudad se duerme…", aExile:"⚖️ La ciudad expulsó a {name}: {role}.", aTie:"⚖️ Votos divididos: nadie es expulsado.", aNight:"🌙 Cae la noche…",
+aLeft:"{name} abandonó la partida.", aHostLeft:"El anfitrión salió: partida detenida.", e_notfound:"Sala o jugador no encontrado.", e_started:"La partida ya está en curso.",
+e_dupname:"Ya hay un jugador con ese nombre.", e_hostonly:"Solo el anfitrión puede hacerlo.", e_needplayers:"Se necesitan al menos {n} jugadores sin contar al anfitrión. Ahora: {c}.",
+e_toomany:"Demasiada mafia para este número de jugadores.", e_phase:"No disponible ahora.", e_auto:"En modo automático las fases cambian solas.", e_dead:"Estás eliminado.",
+e_target:"Elección no válida.", e_voted:"Ya has elegido.", e_nightchat:"De noche la ciudad calla 🌙", e_settings:"Revisa los ajustes del juego.", e_generic:"Error."
+});
+Object.assign(translations.ja, {
+phase_night:"夜", phase_morning:"朝", phase_discussion:"昼 — 話し合い", phase_voting:"投票", phase_finished:"ゲーム終了",
+round:"ラウンド", youHost:"あなたはホストです", you:"あなた", citizen:"市民", startGame:"ゲーム開始", nextBtn:"次へ", toLobby:"ロビーに戻す",
+leaveGame:"ゲームを退出", chatTitle:"チャット", chatPh:"メッセージ...", enterNamePh:"名前を入力", minutes:"分", yes:"はい", no:"いいえ",
+askVote:"{n}に投票しますか？", askMafia:"{n}を襲撃しますか？", askDoctor:"{n}を守りますか？", askSheriff:"{n}を調べますか？",
+hHostNight:"街は眠っています。マフィア・医者・警察が選択中です。あなたは見守ってください。", hHostMorning:"朝になりました。「次へ」を押すと昨夜の出来事が分かります。",
+hHostDiscussion:"プレイヤーがマフィアを話し合っています。あなたは見守ってください。", hHostVoting:"投票中です（{a} / {b}）。", hDead:"💀 あなたは脱落しました。ゲームを見守りましょう。",
+hVote:"⚖️ 投票したいプレイヤーをタップしてください。", hMafia:"🔫 襲撃する相手を選んでください。", hDoctor:"💉 今夜守る相手を選んでください。", hSheriff:"⭐ 調べる相手を選んでください。",
+hSleep:"街は眠っています。目を閉じて… 😴", hActed:"選択しました。朝を待ちましょう…", hVoted:"投票しました。他の人を待っています…", hMorning:"🌅 朝になりました。街は知らせを待っています…",
+hDiscuss:"誰がマフィアか話し合いましょう。チャットは右下の💬です。", checks:"調査結果", mafiaYes:"マフィア 🔫", mafiaNo:"マフィアではない",
+revDied:"昨夜亡くなりました", revNone:"昨夜は誰も亡くなりませんでした", revSaved:"医者が被害者を救いました — 犠牲者なし",
+townWin:"市民の勝利！", mafiaWin:"マフィアの勝利！", was_mafia:"マフィアは：", was_sheriff:"警察は：", was_doctor:"医者は：",
+aStart:"🌙 ゲーム開始。街が眠りにつきます…", aExile:"⚖️ 街は{name}を追放しました — {role}。", aTie:"⚖️ 票が割れました — 追放者なし。", aNight:"🌙 夜が訪れます…",
+aLeft:"{name}が退出しました。", aHostLeft:"ホストが退出したためゲームを中止しました。", e_notfound:"ルームまたはプレイヤーが見つかりません。", e_started:"ゲームはすでに進行中です。",
+e_dupname:"同じ名前のプレイヤーがいます。", e_hostonly:"ホストのみ実行できます。", e_needplayers:"ホストを除いて最低{n}人必要です。現在：{c}人。",
+e_toomany:"この人数ではマフィアが多すぎます。", e_phase:"今は実行できません。", e_auto:"自動モードでは自動で進行します。", e_dead:"あなたは脱落しています。",
+e_target:"無効な選択です。", e_voted:"すでに選択済みです。", e_nightchat:"夜の街は静まり返っています 🌙", e_settings:"ゲーム設定を確認してください。", e_generic:"エラー。"
+});
+Object.assign(translations.fr, {
+phase_night:"Nuit", phase_morning:"Matin", phase_discussion:"Jour — discussion", phase_voting:"Vote", phase_finished:"Partie terminée",
+round:"Manche", youHost:"Vous êtes l'hôte", you:"Vous", citizen:"Citoyen", startGame:"Lancer la partie", nextBtn:"Suivant", toLobby:"Retour au salon",
+leaveGame:"Quitter la partie", chatTitle:"Chat", chatPh:"Message...", enterNamePh:"Entrez votre nom", minutes:"min", yes:"Oui", no:"Non",
+askVote:"Voter pour {n} ?", askMafia:"Tuer {n} ?", askDoctor:"Sauver {n} ?", askSheriff:"Enquêter sur {n} ?",
+hHostNight:"La ville dort. Mafia, docteur et sheriff choisissent. Vous surveillez la partie.", hHostMorning:"Le matin se lève. Appuyez sur « Suivant » pour savoir ce qui s'est passé.",
+hHostDiscussion:"Les joueurs cherchent la mafia. Vous surveillez la partie.", hHostVoting:"Vote en cours ({a} / {b}).", hDead:"💀 Vous êtes éliminé. Observez la partie.",
+hVote:"⚖️ Touchez le joueur pour lequel vous votez.", hMafia:"🔫 Choisissez la victime.", hDoctor:"💉 Choisissez qui sauver cette nuit.", hSheriff:"⭐ Choisissez qui vérifier.",
+hSleep:"La ville dort. Fermez les yeux… 😴", hActed:"Choix fait. Attendez le matin…", hVoted:"Votre vote est pris en compte. On attend les autres…", hMorning:"🌅 Le matin se lève. La ville attend des nouvelles…",
+hDiscuss:"Discutez de qui est la mafia. Le chat est en 💬, en bas à droite.", checks:"Enquêtes", mafiaYes:"mafia 🔫", mafiaNo:"pas mafia",
+revDied:"Mort(e) cette nuit", revNone:"Personne n'est mort cette nuit", revSaved:"Le docteur a sauvé la victime — personne n'est mort",
+townWin:"Les citoyens gagnent !", mafiaWin:"La Mafia gagne !", was_mafia:"La Mafia était :", was_sheriff:"Le Sheriff était :", was_doctor:"Le Docteur était :",
+aStart:"🌙 La partie commence. La ville s'endort…", aExile:"⚖️ La ville a banni {name} — {role}.", aTie:"⚖️ Votes partagés — personne n'est banni.", aNight:"🌙 La nuit tombe…",
+aLeft:"{name} a quitté la partie.", aHostLeft:"L'hôte est parti — partie arrêtée.", e_notfound:"Salon ou joueur introuvable.", e_started:"La partie est déjà en cours.",
+e_dupname:"Un joueur porte déjà ce nom.", e_hostonly:"Seul l'hôte peut faire cela.", e_needplayers:"Il faut au moins {n} joueurs sans compter l'hôte. Actuellement : {c}.",
+e_toomany:"Trop de mafia pour ce nombre de joueurs.", e_phase:"Indisponible pour le moment.", e_auto:"En mode automatique, les phases changent seules.", e_dead:"Vous êtes éliminé.",
+e_target:"Choix invalide.", e_voted:"Choix déjà fait.", e_nightchat:"La nuit, la ville se tait 🌙", e_settings:"Vérifiez les paramètres du jeu.", e_generic:"Erreur."
+});
+Object.assign(translations.he, {
+phase_night:"לילה", phase_morning:"בוקר", phase_discussion:"יום — דיון", phase_voting:"הצבעה", phase_finished:"המשחק נגמר",
+round:"סיבוב", youHost:"אתה המארח", you:"אתה", citizen:"אזרח", startGame:"התחל משחק", nextBtn:"הבא", toLobby:"חזרה ללובי",
+leaveGame:"עזוב משחק", chatTitle:"צ'אט", chatPh:"הודעה...", enterNamePh:"הכנס שם", minutes:"דק׳", yes:"כן", no:"לא",
+askVote:"להצביע נגד {n}?", askMafia:"להרוג את {n}?", askDoctor:"להציל את {n}?", askSheriff:"לבדוק את {n}?",
+hHostNight:"העיר ישנה. המאפיה, הרופא והשריף בוחרים. אתה עוקב אחרי המשחק.", hHostMorning:"הגיע הבוקר. לחץ «הבא» כדי לגלות מה קרה בלילה.",
+hHostDiscussion:"השחקנים דנים מי המאפיה. אתה עוקב אחרי המשחק.", hHostVoting:"ההצבעה מתנהלת ({a} / {b}).", hDead:"💀 הודחת. צפה במשחק.",
+hVote:"⚖️ לחץ על השחקן שנגדו אתה מצביע.", hMafia:"🔫 בחר קורבן.", hDoctor:"💉 בחר את מי להציל הלילה.", hSheriff:"⭐ בחר את מי לבדוק.",
+hSleep:"העיר ישנה. עצום עיניים… 😴", hActed:"הבחירה נעשתה. חכה לבוקר…", hVoted:"ההצבעה שלך נקלטה. מחכים לשאר…", hMorning:"🌅 הגיע הבוקר. העיר מחכה לחדשות…",
+hDiscuss:"דנו מי המאפיה. הצ'אט בכפתור 💬 למטה.", checks:"בדיקות", mafiaYes:"מאפיה 🔫", mafiaNo:"לא מאפיה",
+revDied:"מת/ה הלילה", revNone:"הלילה אף אחד לא מת", revSaved:"הרופא הציל את הקורבן — אף אחד לא מת",
+townWin:"האזרחים ניצחו!", mafiaWin:"המאפיה ניצחה!", was_mafia:"המאפיה הייתה:", was_sheriff:"השריף היה:", was_doctor:"הרופא היה:",
+aStart:"🌙 המשחק התחיל. העיר נרדמת…", aExile:"⚖️ העיר גירשה את {name} — {role}.", aTie:"⚖️ הקולות התפצלו — אף אחד לא גורש.", aNight:"🌙 הלילה יורד…",
+aLeft:"{name} עזב/ה את המשחק.", aHostLeft:"המארח יצא — המשחק נעצר.", e_notfound:"החדר או השחקן לא נמצאו.", e_started:"המשחק כבר מתנהל.",
+e_dupname:"כבר יש שחקן בשם הזה.", e_hostonly:"רק המארח יכול לעשות זאת.", e_needplayers:"נדרשים לפחות {n} שחקנים, לא כולל המארח. כרגע: {c}.",
+e_toomany:"יותר מדי מאפיה למספר השחקנים.", e_phase:"לא זמין כרגע.", e_auto:"במצב אוטומטי השלבים מתחלפים לבד.", e_dead:"הודחת מהמשחק.",
+e_target:"בחירה לא חוקית.", e_voted:"כבר בחרת.", e_nightchat:"בלילה העיר שותקת 🌙", e_settings:"בדוק את הגדרות המשחק.", e_generic:"שגיאה."
+});
+
+/* ===== правила ===== */
+Object.assign(translations.ru, {
+rules:"Правила игры", eyeBtn:"Закрыть глаза",
+r_goal_h:"Цель игры", r_goal:"Город и мафия борются друг с другом. Мирные игроки хотят найти и изгнать всю мафию, а мафия — убрать всех мирных.",
+r_roles_h:"Роли",
+r_host:"не играет и не получает роль. Следит за игрой, запускает её и в ручном режиме переключает фазы кнопкой «Далее». Ролей игроков он не видит.",
+r_mafia:"знает других мафиози. Каждую ночь мафия выбирает жертву, а ночью мафиози могут переписываться в своём закрытом чате.",
+r_sheriff:"каждую ночь проверяет одного игрока и узнаёт, мафия он или нет. Проверять можно каждую ночь, пока шериф жив. Результат видит только он.",
+r_doctor:"каждую ночь выбирает одного игрока и спасает его. Если мафия выбрала именно его, он выживет. Себя тоже можно спасти.",
+r_citizen:"ночью спит и не делает выбора. Днём обсуждает и голосует, помогая найти мафию.",
+r_flow_h:"Как проходит игра",
+r_night:"город спит. Мафия, доктор и шериф тайно делают выбор. Остальные ждут.",
+r_morning:"город просыпается, но что случилось ночью, ещё не известно. Ведущий нажимает «Далее», и в центре стола показывают, кто погиб (или что никто не погиб).",
+r_day:"все живые игроки обсуждают в чате, кто может быть мафией.",
+r_vote:"каждый живой игрок голосует за подозреваемого. Изгнан тот, кто набрал больше всех голосов. При равенстве голосов никого не изгоняют. Роль изгнанного раскрывается. Потом наступает новая ночь.",
+r_win_h:"Победа",
+r_win:"Мирные побеждают, когда изгнана или убита вся мафия. Мафия побеждает, когда не остаётся ни одного мирного игрока: шериф и доктор тоже считаются мирными, их тоже нужно убрать. В конце игры показываются все роли.",
+r_tips_h:"Полезно знать",
+r_tip_eye:"Кнопка с закрытым глазом закрывает весь экран, чтобы соседи не подсмотрели вашу роль или выбор. Нажмите на экран, чтобы открыть его снова.",
+r_tip_chat:"Кнопка 💬 открывает общий чат. Ночью пишут только мафиози, и только друг другу. Выбывшие игроки молчат.",
+r_tip_modes:"В ручном режиме фазы переключает ведущий, в автоматическом — таймеры, а ночь и голосование заканчиваются раньше, если все сделали выбор."
+});
+Object.assign(translations.en, {
+rules:"Game rules", eyeBtn:"Close eyes",
+r_goal_h:"Goal", r_goal:"The town and the mafia fight each other. Peaceful players want to find and banish all the mafia; the mafia wants to eliminate every peaceful player.",
+r_roles_h:"Roles",
+r_host:"does not play and has no role. They watch the game, start it and, in manual mode, switch phases with the “Next” button. The host cannot see anyone's role.",
+r_mafia:"knows the other mafia members. Every night the mafia picks a victim, and at night mafia members can talk in their own private chat.",
+r_sheriff:"checks one player every night and learns whether they are mafia. They can check every night for as long as they are alive. Only the sheriff sees the result.",
+r_doctor:"saves one player every night. If the mafia picked that player, they survive. The doctor may save themselves.",
+r_citizen:"sleeps at night and makes no choice. By day they discuss and vote to help find the mafia.",
+r_flow_h:"How a game goes",
+r_night:"the town sleeps. Mafia, doctor and sheriff secretly make their choices. Everyone else waits.",
+r_morning:"the town wakes up, but nobody knows yet what happened. The host presses “Next” and the centre of the table shows who died (or that nobody did).",
+r_day:"all living players discuss in chat who the mafia might be.",
+r_vote:"every living player votes for a suspect. The player with the most votes is banished. On a tie nobody is banished. The banished player's role is revealed. Then a new night begins.",
+r_win_h:"Victory",
+r_win:"The town wins when all the mafia are banished or killed. The mafia wins when no peaceful player is left: the sheriff and doctor count as peaceful too and must be eliminated as well. All roles are revealed at the end.",
+r_tips_h:"Good to know",
+r_tip_eye:"The closed-eye button covers the whole screen so neighbours cannot peek at your role or choice. Tap the screen to open it again.",
+r_tip_chat:"The 💬 button opens the shared chat. At night only mafia members can write, and only to each other. Eliminated players stay silent.",
+r_tip_modes:"In manual mode the host switches phases; in automatic mode timers do, and night and voting end early once everyone has chosen."
+});
+Object.assign(translations.es, {
+rules:"Reglas del juego", eyeBtn:"Cerrar los ojos",
+r_goal_h:"Objetivo", r_goal:"La ciudad y la mafia se enfrentan. Los jugadores pacíficos quieren encontrar y expulsar a toda la mafia; la mafia quiere eliminar a todos los pacíficos.",
+r_roles_h:"Roles",
+r_host:"no juega ni tiene rol. Vigila la partida, la inicia y, en modo manual, cambia de fase con el botón «Siguiente». No ve los roles de nadie.",
+r_mafia:"conoce a los demás miembros de la mafia. Cada noche la mafia elige una víctima, y de noche los mafiosos pueden hablar en su chat privado.",
+r_sheriff:"cada noche investiga a un jugador y descubre si es mafia. Puede investigar cada noche mientras siga vivo. Solo él ve el resultado.",
+r_doctor:"cada noche salva a un jugador. Si la mafia lo eligió, sobrevive. El doctor puede salvarse a sí mismo.",
+r_citizen:"duerme de noche y no elige nada. De día debate y vota para ayudar a encontrar a la mafia.",
+r_flow_h:"Cómo se juega",
+r_night:"la ciudad duerme. Mafia, doctor y sheriff eligen en secreto. Los demás esperan.",
+r_morning:"la ciudad despierta, pero aún nadie sabe qué pasó. El anfitrión pulsa «Siguiente» y el centro de la mesa muestra quién murió (o que nadie murió).",
+r_day:"todos los jugadores vivos debaten en el chat quién puede ser la mafia.",
+r_vote:"cada jugador vivo vota por un sospechoso. Se expulsa al que más votos tenga. En caso de empate nadie es expulsado. Se revela el rol del expulsado. Luego empieza otra noche.",
+r_win_h:"Victoria",
+r_win:"La ciudad gana cuando toda la mafia ha sido expulsada o eliminada. La mafia gana cuando no queda ningún jugador pacífico: el sheriff y el doctor también cuentan como pacíficos y hay que eliminarlos. Al final se revelan todos los roles.",
+r_tips_h:"Conviene saber",
+r_tip_eye:"El botón del ojo cerrado cubre toda la pantalla para que nadie espíe tu rol o tu elección. Toca la pantalla para abrirla de nuevo.",
+r_tip_chat:"El botón 💬 abre el chat común. De noche solo escriben los mafiosos, y solo entre ellos. Los eliminados guardan silencio.",
+r_tip_modes:"En modo manual el anfitrión cambia las fases; en modo automático lo hacen los temporizadores, y la noche y la votación terminan antes si todos ya eligieron."
+});
+Object.assign(translations.ja, {
+rules:"ゲームのルール", eyeBtn:"目を閉じる",
+r_goal_h:"目的", r_goal:"市民とマフィアが戦います。市民側はマフィアを全員見つけて追放し、マフィア側は市民を全員排除すれば勝ちです。",
+r_roles_h:"役職",
+r_host:"ゲームには参加せず、役職もありません。進行を見守り、ゲームを開始し、手動モードでは「次へ」ボタンでフェーズを進めます。誰の役職も見えません。",
+r_mafia:"他のマフィアが誰か分かります。毎晩、被害者を一人選びます。夜の間、マフィア同士は専用チャットで相談できます。",
+r_sheriff:"毎晩一人を調べ、マフィアかどうか分かります。生きている限り毎晩調べられます。結果は本人にだけ見えます。",
+r_doctor:"毎晩一人を守ります。マフィアがその人を選んでも助かります。自分自身を守ることもできます。",
+r_citizen:"夜は眠っていて選択はありません。昼は話し合いと投票でマフィアを探します。",
+r_flow_h:"ゲームの流れ",
+r_night:"街は眠ります。マフィア・医者・警察がこっそり選択します。他の人は待ちます。",
+r_morning:"街が目覚めますが、何が起きたかはまだ分かりません。ホストが「次へ」を押すと、テーブルの中央に亡くなった人（または誰も亡くなっていないこと）が表示されます。",
+r_day:"生存者全員がチャットで誰がマフィアか話し合います。",
+r_vote:"生存者全員が怪しい人に投票します。最多得票の人が追放されます。同数の場合は誰も追放されません。追放された人の役職が公開され、再び夜になります。",
+r_win_h:"勝利条件",
+r_win:"マフィアが全員追放または殺されたら市民の勝ちです。市民が一人もいなくなったらマフィアの勝ちです。警察と医者も市民として数えるので、全員排除する必要があります。終了時に全員の役職が公開されます。",
+r_tips_h:"知っておくと便利",
+r_tip_eye:"目を閉じたボタンを押すと画面全体が隠れ、隣の人に役職や選択をのぞかれません。画面をタップすると元に戻ります。",
+r_tip_chat:"💬ボタンで全体チャットを開きます。夜はマフィアだけが、仲間にだけ書き込めます。脱落した人は書き込めません。",
+r_tip_modes:"手動モードではホストがフェーズを進め、自動モードではタイマーが進めます。全員が選び終えると夜や投票は早く終わります。"
+});
+Object.assign(translations.fr, {
+rules:"Règles du jeu", eyeBtn:"Fermer les yeux",
+r_goal_h:"But du jeu", r_goal:"La ville et la mafia s'affrontent. Les joueurs pacifiques veulent trouver et bannir toute la mafia ; la mafia veut éliminer tous les pacifiques.",
+r_roles_h:"Rôles",
+r_host:"ne joue pas et n'a pas de rôle. Il surveille la partie, la lance et, en mode manuel, change de phase avec le bouton « Suivant ». Il ne voit le rôle de personne.",
+r_mafia:"connaît les autres membres de la mafia. Chaque nuit, la mafia choisit une victime, et la nuit les mafieux peuvent discuter dans leur chat privé.",
+r_sheriff:"enquête chaque nuit sur un joueur et découvre s'il est mafia. Il peut enquêter chaque nuit tant qu'il est en vie. Lui seul voit le résultat.",
+r_doctor:"sauve un joueur chaque nuit. Si la mafia l'a choisi, il survit. Le docteur peut se sauver lui-même.",
+r_citizen:"dort la nuit et ne fait aucun choix. Le jour, il discute et vote pour aider à trouver la mafia.",
+r_flow_h:"Déroulement",
+r_night:"la ville dort. Mafia, docteur et sheriff font leur choix en secret. Les autres attendent.",
+r_morning:"la ville se réveille, mais personne ne sait encore ce qui s'est passé. L'hôte appuie sur « Suivant » et le centre de la table montre qui est mort (ou que personne ne l'est).",
+r_day:"tous les joueurs en vie discutent dans le chat de qui pourrait être la mafia.",
+r_vote:"chaque joueur en vie vote pour un suspect. Celui qui a le plus de voix est banni. En cas d'égalité, personne n'est banni. Le rôle du banni est révélé. Puis une nouvelle nuit commence.",
+r_win_h:"Victoire",
+r_win:"La ville gagne quand toute la mafia est bannie ou tuée. La mafia gagne quand il ne reste aucun joueur pacifique : le sheriff et le docteur comptent aussi comme pacifiques et doivent être éliminés. Tous les rôles sont révélés à la fin.",
+r_tips_h:"Bon à savoir",
+r_tip_eye:"Le bouton de l'œil fermé recouvre tout l'écran pour que vos voisins ne puissent pas voir votre rôle ou votre choix. Touchez l'écran pour le rouvrir.",
+r_tip_chat:"Le bouton 💬 ouvre le chat commun. La nuit, seuls les mafieux écrivent, et seulement entre eux. Les joueurs éliminés restent silencieux.",
+r_tip_modes:"En mode manuel, l'hôte change les phases ; en mode automatique, ce sont les minuteurs, et la nuit et le vote se terminent plus tôt quand tout le monde a choisi."
+});
+Object.assign(translations.he, {
+rules:"חוקי המשחק", eyeBtn:"עצום עיניים",
+r_goal_h:"מטרת המשחק", r_goal:"העיר והמאפיה נלחמות זו בזו. השחקנים השלווים רוצים למצוא ולגרש את כל המאפיה, והמאפיה רוצה לחסל את כל השלווים.",
+r_roles_h:"תפקידים",
+r_host:"לא משחק ואין לו תפקיד. הוא עוקב אחרי המשחק, מתחיל אותו, ובמצב ידני מעביר שלבים בכפתור «הבא». הוא לא רואה את התפקידים של אף אחד.",
+r_mafia:"מכיר את שאר חברי המאפיה. בכל לילה המאפיה בוחרת קורבן, ובלילה אנשי המאפיה יכולים לשוחח בצ'אט סגור משלהם.",
+r_sheriff:"בכל לילה בודק שחקן אחד ומגלה אם הוא מאפיה. אפשר לבדוק בכל לילה כל עוד השריף חי. רק השריף רואה את התוצאה.",
+r_doctor:"בכל לילה מציל שחקן אחד. אם המאפיה בחרה בו, הוא שורד. הרופא יכול להציל גם את עצמו.",
+r_citizen:"ישן בלילה ולא בוחר כלום. ביום הוא דן ומצביע כדי לעזור למצוא את המאפיה.",
+r_flow_h:"איך המשחק מתנהל",
+r_night:"העיר ישנה. המאפיה, הרופא והשריף בוחרים בסתר. כל השאר ממתינים.",
+r_morning:"העיר מתעוררת, אבל עדיין אף אחד לא יודע מה קרה. המארח לוחץ «הבא» ובמרכז השולחן מוצג מי מת (או שאף אחד לא מת).",
+r_day:"כל השחקנים החיים דנים בצ'אט מי יכולה להיות המאפיה.",
+r_vote:"כל שחקן חי מצביע נגד חשוד. מי שקיבל הכי הרבה קולות מגורש. בתיקו אף אחד לא מגורש. תפקידו של המגורש נחשף. אחר כך מתחיל לילה חדש.",
+r_win_h:"ניצחון",
+r_win:"העיר מנצחת כשכל המאפיה גורשה או חוסלה. המאפיה מנצחת כשלא נשארו שחקנים שלווים: גם השריף והרופא נחשבים שלווים וצריך לחסל גם אותם. בסוף המשחק כל התפקידים נחשפים.",
+r_tips_h:"טוב לדעת",
+r_tip_eye:"כפתור העין העצומה מכסה את כל המסך כדי שהשכנים לא יציצו בתפקיד או בבחירה שלך. לחץ על המסך כדי לפתוח אותו שוב.",
+r_tip_chat:"כפתור 💬 פותח את הצ'אט המשותף. בלילה רק אנשי המאפיה כותבים, ורק אחד לשני. שחקנים שהודחו שותקים.",
+r_tip_modes:"במצב ידני המארח מחליף שלבים; במצב אוטומטי הטיימרים עושים זאת, והלילה וההצבעה מסתיימים מוקדם אם כולם כבר בחרו."
+});
+
+/* ===== изгнание, аккаунт, магазин ===== */
+Object.assign(translations.ru, {
+phase_exile:"Изгнание", phase_exileRole:"Изгнание", hHostExile:"Нажмите «Далее», чтобы продолжить.", hExile:"Город решает судьбу изгнанного…",
+exiled:"Вы изгнали игрока", exRole:"Его роль", exNone:"Голоса разделились — никто не изгнан",
+account:"Аккаунт", login:"Войти", register:"Создать аккаунт", logout:"Выйти", username:"Имя пользователя", password:"Пароль",
+shop:"Магазин", buy:"Купить", equip:"Надеть", equipped:"Надето", none:"Нет", loginForItems:"Войдите в аккаунт, чтобы получать предметы и одевать персонажа.",
+shopTry:"Нажмите на предмет, чтобы примерить его.", reward:"Награда: +{n} 🪙", guestHint:"Играйте без аккаунта или войдите, чтобы копить монеты и покупать предметы.", bought:"Куплено!",
+slot_hat:"Шляпы", slot_badge:"Бейджики", slot_nameColor:"Цвета имени", slot_background:"Фоны",
+rar_0:"Обычный", rar_1:"Редкий", rar_2:"Эпический", rar_3:"Мифический", rar_4:"Легендарный",
+a_name:"Имя: 3–16 символов, буквы, цифры и _.", a_pass:"Пароль: минимум 6 символов.", a_exists:"Это имя уже занято.", a_wrong:"Неверное имя или пароль.",
+a_many:"Слишком много попыток. Подождите минуту.", a_login:"Сначала войдите в аккаунт.", s_item:"Предмет не найден.", s_owned:"Этот предмет уже куплен.", s_coins:"Недостаточно монет.", s_notowned:"Этот предмет не куплен.",
+r_exile:"после голосования ведущий нажимает «Далее»: в центре стола показывают, кого изгнали. Ещё одно «Далее», и под ним появляется его роль. Если изгнан последний мафиози, город побеждает сразу; если мафия ещё есть, игра продолжается ночью.",
+r_tip_coins:"Игроки с аккаунтом получают монеты: победа мирных +25, победа мафии +50, поражение мирных +5, поражение мафии +10. Ведущий монет не получает. В магазине за монеты покупаются шляпы, бейджики, цвета имени и фоны пяти редкостей."
+});
+Object.assign(translations.en, {
+phase_exile:"Banishment", phase_exileRole:"Banishment", hHostExile:"Press “Next” to continue.", hExile:"The town is deciding the banished player's fate…",
+exiled:"You banished the player", exRole:"Their role", exNone:"Votes split — nobody is banished",
+account:"Account", login:"Log in", register:"Create account", logout:"Log out", username:"Username", password:"Password",
+shop:"Shop", buy:"Buy", equip:"Equip", equipped:"Equipped", none:"None", loginForItems:"Log in to earn items and dress up your character.",
+shopTry:"Tap an item to try it on.", reward:"Reward: +{n} 🪙", guestHint:"Play without an account, or log in to earn coins and buy items.", bought:"Purchased!",
+slot_hat:"Hats", slot_badge:"Badges", slot_nameColor:"Name colors", slot_background:"Backgrounds",
+rar_0:"Common", rar_1:"Rare", rar_2:"Epic", rar_3:"Mythic", rar_4:"Legendary",
+a_name:"Username: 3–16 characters, letters, digits and _.", a_pass:"Password: at least 6 characters.", a_exists:"That username is taken.", a_wrong:"Wrong username or password.",
+a_many:"Too many attempts. Wait a minute.", a_login:"Please log in first.", s_item:"Item not found.", s_owned:"You already own this item.", s_coins:"Not enough coins.", s_notowned:"You don't own this item.",
+r_exile:"after the vote the host presses “Next”: the centre of the table shows who was banished. One more “Next” and their role appears below. If the last mafia member was banished, the town wins at once; if mafia remain, the game goes on into the night.",
+r_tip_coins:"Logged-in players earn coins: town win +25, mafia win +50, town loss +5, mafia loss +10. The host earns none. In the shop, coins buy hats, badges, name colors and backgrounds in five rarities."
+});
+Object.assign(translations.es, {
+phase_exile:"Expulsión", phase_exileRole:"Expulsión", hHostExile:"Pulsa «Siguiente» para continuar.", hExile:"La ciudad decide el destino del expulsado…",
+exiled:"Has expulsado al jugador", exRole:"Su rol", exNone:"Votos divididos: nadie es expulsado",
+account:"Cuenta", login:"Entrar", register:"Crear cuenta", logout:"Cerrar sesión", username:"Nombre de usuario", password:"Contraseña",
+shop:"Tienda", buy:"Comprar", equip:"Equipar", equipped:"Equipado", none:"Ninguno", loginForItems:"Inicia sesión para conseguir objetos y vestir a tu personaje.",
+shopTry:"Toca un objeto para probártelo.", reward:"Recompensa: +{n} 🪙", guestHint:"Juega sin cuenta o inicia sesión para ganar monedas y comprar objetos.", bought:"¡Comprado!",
+slot_hat:"Sombreros", slot_badge:"Insignias", slot_nameColor:"Colores de nombre", slot_background:"Fondos",
+rar_0:"Común", rar_1:"Raro", rar_2:"Épico", rar_3:"Mítico", rar_4:"Legendario",
+a_name:"Nombre: 3–16 caracteres, letras, números y _.", a_pass:"Contraseña: mínimo 6 caracteres.", a_exists:"Ese nombre ya está en uso.", a_wrong:"Nombre o contraseña incorrectos.",
+a_many:"Demasiados intentos. Espera un minuto.", a_login:"Inicia sesión primero.", s_item:"Objeto no encontrado.", s_owned:"Ya tienes este objeto.", s_coins:"No tienes suficientes monedas.", s_notowned:"No tienes este objeto.",
+r_exile:"tras la votación el anfitrión pulsa «Siguiente»: el centro de la mesa muestra a quién expulsaron. Otro «Siguiente» y debajo aparece su rol. Si expulsaron al último mafioso, la ciudad gana al instante; si queda mafia, la partida sigue con la noche.",
+r_tip_coins:"Quien ha iniciado sesión gana monedas: victoria de la ciudad +25, de la mafia +50, derrota de la ciudad +5, de la mafia +10. El anfitrión no gana. En la tienda las monedas compran sombreros, insignias, colores de nombre y fondos de cinco rarezas."
+});
+Object.assign(translations.ja, {
+phase_exile:"追放", phase_exileRole:"追放", hHostExile:"「次へ」を押して続けてください。", hExile:"街が追放者の運命を決めています…",
+exiled:"あなたはこのプレイヤーを追放しました", exRole:"その役職", exNone:"票が割れました — 追放者なし",
+account:"アカウント", login:"ログイン", register:"アカウント作成", logout:"ログアウト", username:"ユーザー名", password:"パスワード",
+shop:"ショップ", buy:"購入", equip:"装備", equipped:"装備中", none:"なし", loginForItems:"ログインするとアイテムを入手してキャラクターを着飾れます。",
+shopTry:"アイテムをタップして試着できます。", reward:"報酬：+{n} 🪙", guestHint:"アカウントなしでも遊べます。ログインするとコインを貯めてアイテムを買えます。", bought:"購入しました！",
+slot_hat:"帽子", slot_badge:"バッジ", slot_nameColor:"名前の色", slot_background:"背景",
+rar_0:"コモン", rar_1:"レア", rar_2:"エピック", rar_3:"ミシック", rar_4:"レジェンダリー",
+a_name:"ユーザー名：3〜16文字、文字・数字・_。", a_pass:"パスワード：6文字以上。", a_exists:"その名前は使われています。", a_wrong:"ユーザー名またはパスワードが違います。",
+a_many:"試行回数が多すぎます。1分お待ちください。", a_login:"先にログインしてください。", s_item:"アイテムが見つかりません。", s_owned:"すでに持っています。", s_coins:"コインが足りません。", s_notowned:"このアイテムは未購入です。",
+r_exile:"投票の後、ホストが「次へ」を押すと、テーブルの中央に追放された人が表示されます。もう一度「次へ」を押すと、その下に役職が表示されます。最後のマフィアが追放されたら市民の即勝利です。マフィアが残っていれば夜に進みます。",
+r_tip_coins:"アカウントにログインしている人はコインを獲得します：市民の勝利+25、マフィアの勝利+50、市民の敗北+5、マフィアの敗北+10。ホストは獲得しません。ショップでは、5段階のレア度の帽子・バッジ・名前の色・背景を買えます。"
+});
+Object.assign(translations.fr, {
+phase_exile:"Bannissement", phase_exileRole:"Bannissement", hHostExile:"Appuyez sur « Suivant » pour continuer.", hExile:"La ville décide du sort du banni…",
+exiled:"Vous avez banni le joueur", exRole:"Son rôle", exNone:"Votes partagés — personne n'est banni",
+account:"Compte", login:"Se connecter", register:"Créer un compte", logout:"Se déconnecter", username:"Nom d'utilisateur", password:"Mot de passe",
+shop:"Boutique", buy:"Acheter", equip:"Équiper", equipped:"Équipé", none:"Aucun", loginForItems:"Connectez-vous pour gagner des objets et habiller votre personnage.",
+shopTry:"Touchez un objet pour l'essayer.", reward:"Récompense : +{n} 🪙", guestHint:"Jouez sans compte, ou connectez-vous pour gagner des pièces et acheter des objets.", bought:"Acheté !",
+slot_hat:"Chapeaux", slot_badge:"Badges", slot_nameColor:"Couleurs de nom", slot_background:"Fonds",
+rar_0:"Commun", rar_1:"Rare", rar_2:"Épique", rar_3:"Mythique", rar_4:"Légendaire",
+a_name:"Nom : 3 à 16 caractères, lettres, chiffres et _.", a_pass:"Mot de passe : 6 caractères minimum.", a_exists:"Ce nom est déjà pris.", a_wrong:"Nom ou mot de passe incorrect.",
+a_many:"Trop de tentatives. Attendez une minute.", a_login:"Connectez-vous d'abord.", s_item:"Objet introuvable.", s_owned:"Vous possédez déjà cet objet.", s_coins:"Pas assez de pièces.", s_notowned:"Vous ne possédez pas cet objet.",
+r_exile:"après le vote, l'hôte appuie sur « Suivant » : le centre de la table montre qui a été banni. Un nouveau « Suivant » et son rôle apparaît dessous. Si le dernier mafieux est banni, la ville gagne aussitôt ; s'il reste de la mafia, la partie continue avec la nuit.",
+r_tip_coins:"Les joueurs connectés gagnent des pièces : victoire de la ville +25, de la mafia +50, défaite de la ville +5, de la mafia +10. L'hôte n'en gagne pas. À la boutique, les pièces achètent chapeaux, badges, couleurs de nom et fonds de cinq raretés."
+});
+Object.assign(translations.he, {
+phase_exile:"גירוש", phase_exileRole:"גירוש", hHostExile:"לחץ «הבא» כדי להמשיך.", hExile:"העיר מחליטה מה יקרה למגורש…",
+exiled:"גירשת את השחקן", exRole:"התפקיד שלו", exNone:"הקולות התפצלו — אף אחד לא גורש",
+account:"חשבון", login:"התחברות", register:"יצירת חשבון", logout:"התנתקות", username:"שם משתמש", password:"סיסמה",
+shop:"חנות", buy:"קנה", equip:"לבש", equipped:"לבוש", none:"ללא", loginForItems:"התחבר כדי לקבל פריטים ולהלביש את הדמות.",
+shopTry:"לחץ על פריט כדי למדוד אותו.", reward:"פרס: +{n} 🪙", guestHint:"אפשר לשחק בלי חשבון, או להתחבר כדי לצבור מטבעות ולקנות פריטים.", bought:"נרכש!",
+slot_hat:"כובעים", slot_badge:"תגים", slot_nameColor:"צבעי שם", slot_background:"רקעים",
+rar_0:"רגיל", rar_1:"נדיר", rar_2:"אפי", rar_3:"מיתי", rar_4:"אגדי",
+a_name:"שם: 3–16 תווים, אותיות, ספרות ו־_.", a_pass:"סיסמה: לפחות 6 תווים.", a_exists:"השם הזה תפוס.", a_wrong:"שם משתמש או סיסמה שגויים.",
+a_many:"יותר מדי ניסיונות. המתן דקה.", a_login:"התחבר קודם.", s_item:"הפריט לא נמצא.", s_owned:"הפריט כבר שלך.", s_coins:"אין מספיק מטבעות.", s_notowned:"הפריט עדיין לא נרכש.",
+r_exile:"אחרי ההצבעה המארח לוחץ «הבא»: במרכז השולחן מוצג מי גורש. לחיצה נוספת על «הבא» חושפת מתחתיו את תפקידו. אם גורש איש המאפיה האחרון, העיר מנצחת מיד; אם נשארה מאפיה, המשחק ממשיך ללילה.",
+r_tip_coins:"שחקנים מחוברים מרוויחים מטבעות: ניצחון העיר +25, ניצחון המאפיה +50, הפסד העיר +5, הפסד המאפיה +10. המארח לא מקבל. בחנות קונים במטבעות כובעים, תגים, צבעי שם ורקעים בחמש דרגות נדירות."
+});
+
+Object.assign(translations.ru, { e_noserver:"Сервер не отвечает на вход. Скорее всего, работает СТАРЫЙ сервер: закройте его (taskkill /F /IM node.exe), запустите node server.js и обновите страницу (Ctrl+F5)." });
+Object.assign(translations.en, { e_noserver:"The server does not answer. An OLD server is probably still running: close it (taskkill /F /IM node.exe), start node server.js and refresh the page (Ctrl+F5)." });
+Object.assign(translations.es, { e_noserver:"El servidor no responde. Probablemente sigue activo un servidor ANTIGUO: ciérralo (taskkill /F /IM node.exe), ejecuta node server.js y recarga la página (Ctrl+F5)." });
+Object.assign(translations.ja, { e_noserver:"サーバーが応答しません。古いサーバーが動いている可能性があります。taskkill /F /IM node.exe で終了し、node server.js を起動してページを更新（Ctrl+F5）してください。" });
+Object.assign(translations.fr, { e_noserver:"Le serveur ne répond pas. Un ANCIEN serveur tourne probablement encore : fermez-le (taskkill /F /IM node.exe), lancez node server.js et actualisez la page (Ctrl+F5)." });
+Object.assign(translations.he, { e_noserver:"השרת לא מגיב. כנראה עדיין רץ שרת ישן: סגור אותו (taskkill /F /IM node.exe), הפעל node server.js ורענן את הדף (Ctrl+F5)." });
+
+/* =========================
+   ГЛОБАЛЬНЫЕ ДАННЫЕ
+========================= */
+
+const socket = io();
+
+let currentLanguage = localStorage.getItem("mafiaLanguage") || "ru";
+let currentCode = null;
+let currentRoomSettings = null;
+let currentHostId = null;
+let lastRoomPlayers = [];
+let editorOrigin = "menu";
+
+const defaultCharacter = {
+    face: "🙂",
+    shape: "capsule",
+    color: "#d65b4a"
+};
+
+function cleanCharacter(value) {
+    const allowedFaces = [
+        "🙂","😎","😄","😁","😂","😐","😶","🤔","😴","😮",
+        "😡","🥳","🤓","😇","🤠","😈","👽","🤖","🐻","🐺"
+    ];
+
+    const allowedShapes = [
+        "triangle","circle","square","rectangle","diamond",
+        "star","oval","hexagon","capsule","shield"
+    ];
+
+    const allowedColors = [
+        "#d65b4a","#e58a42","#e5c34d","#83b85b",
+        "#3caa82","#45a6b8","#4c79c9","#8062c7",
+        "#bb65ae","#e58eae","#eeeeee","#777777",
+        "#49352e","#222222","#a66d42","#c7a78c"
+    ];
+
+    if (!value || typeof value !== "object") {
+        return {...defaultCharacter};
+    }
+
+    return {
+        face: allowedFaces.includes(value.face) ? value.face : defaultCharacter.face,
+        shape: allowedShapes.includes(value.shape) ? value.shape : defaultCharacter.shape,
+        color: allowedColors.includes(value.color) ? value.color : defaultCharacter.color
+    };
+}
+
+let character = cleanCharacter(
+    JSON.parse(localStorage.getItem("mafiaCharacter") || "null")
+);
+
+function t(key) {
+    return translations[currentLanguage]?.[key] ||
+           translations.en[key] ||
+           key;
+}
+
+function cleanPlayerName(value) {
+    if (typeof value === "string" || typeof value === "number") {
+        return String(value).trim() || t("player");
+    }
+
+    if (value && typeof value === "object") {
+        const possibleName =
+            value.name ||
+            value.displayName ||
+            value.username ||
+            value.value;
+
+        if (typeof possibleName === "string" && possibleName.trim()) {
+            return possibleName.trim();
+        }
+    }
+
+    return t("player");
+}
+
+/* =========================
+   ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ
+========================= */
+
+function showPanel(panelId) {
+    document.querySelectorAll(".container > section").forEach(panel => {
+        panel.classList.add("hidden");
+    });
+
+    const panel = document.getElementById(panelId);
+
+    if (panel) {
+        panel.classList.remove("hidden");
+    }
+
+    if (panelId === "gameSettingsPanel") {
+        updateTimerLabels();
+        updateMaxPlayersLabel();
+        updateSettingsSummary();
+    }
+
+    if (panelId === "roomPanel") {
+        requestRoomUpdate();
+    }
+}
+
+/* =========================
+   СОЗДАНИЕ КОМНАТЫ
+========================= */
+
+function showMessage(id, message) {
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    element.textContent = message;
+    element.classList.add("show");
+}
+
+function hideMessage(id) {
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    element.textContent = "";
+    element.classList.remove("show");
+}
+
+function continueToGameSettings() {
+    const name = document.getElementById("hostName").value.trim();
+
+    if (!name) {
+        showMessage("createMessage", t("enterName"));
+        return;
+    }
+
+    hideMessage("createMessage");
+    showPanel("gameSettingsPanel");
+}
+
+function getGameSettings() {
+    return {
+        mode: document.querySelector('input[name="gameMode"]:checked').value,
+        discussionTime: Number(document.getElementById("discussionTime").value),
+        votingTime: Number(document.getElementById("votingTime").value),
+        maxPlayers: Number(document.getElementById("maxPlayers").value),
+        roles: {
+            mafia: Number(document.getElementById("mafiaCount").value),
+            sheriff: Number(document.getElementById("sheriffCount").value),
+            doctor: Number(document.getElementById("doctorCount").value)
+        }
+    };
+}
+
+function updateMaxPlayersLabel() {
+    const slider = document.getElementById("maxPlayers");
+    const label = document.getElementById("maxPlayersValue");
+
+    if (slider && label) {
+        label.textContent = slider.value;
+        updateSettingsSummary();
+    }
+}
+
+function updateTimerLabels() {
+    const discussion = document.getElementById("discussionTime");
+    const voting = document.getElementById("votingTime");
+
+    if (discussion) {
+        document.getElementById("discussionValue").textContent =
+            discussion.value + " " + t("seconds");
+    }
+
+    if (voting) {
+        document.getElementById("votingValue").textContent =
+            voting.value + " " + t("seconds");
+    }
+
+    updateSettingsSummary();
+}
+
+function formatTime(seconds) {
+    seconds = Number(seconds) || 0;
+
+    if (seconds < 60) {
+        return seconds + " " + t("seconds");
+    }
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    if (remainingSeconds === 0) {
+        return minutes + " " + t("minutes");
+    }
+
+    return minutes + " " + t("minutes") + " " + remainingSeconds + " " + t("seconds");
+}
+
+function buildSettingsText(settings) {
+    if (!settings || !settings.roles) return "";
+
+    const roleTotal =
+        Number(settings.roles.mafia || 0) +
+        Number(settings.roles.sheriff || 0) +
+        Number(settings.roles.doctor || 0);
+
+    const maxPlayers = Number(settings.maxPlayers) || 30;
+
+    return [
+        t("gameSettings"),
+        t("mode") + ": " + (
+            settings.mode === "manual" ? t("manualSummary") : t("autoSummary")
+        ),
+        t("discussion") + ": " + formatTime(settings.discussionTime),
+        t("voting") + ": " + formatTime(settings.votingTime),
+        t("mafia") + ": " + settings.roles.mafia,
+        t("sheriff") + ": " + settings.roles.sheriff,
+        t("doctor") + ": " + settings.roles.doctor,
+        t("maxPlayersLabel") + ": " + maxPlayers,
+        t("citizens") + ": " + Math.max(0, maxPlayers - 1 - roleTotal)
+    ].join("\n");
+}
+
+function updateSettingsSummary() {
+    const preview = document.getElementById("settingsPreview");
+
+    if (preview) {
+        preview.textContent = buildSettingsText(getGameSettings());
+    }
+}
+
+function updateRoomSettingsSummary() {
+    const summary = document.getElementById("roomSettingsSummary");
+
+    if (summary) {
+        summary.textContent = currentRoomSettings
+            ? buildSettingsText(currentRoomSettings)
+            : "";
+    }
+}
+
+function createRoomNow() {
+    hideMessage("gameSettingsMessage");
+
+    if (!socket.connected) {
+        showMessage("gameSettingsMessage", t("connectionError"));
+        return;
+    }
+
+    const name = document.getElementById("hostName").value.trim();
+    const settings = getGameSettings();
+
+    if (!name) {
+        showPanel("createPanel");
+        showMessage("createMessage", t("enterName"));
+        return;
+    }
+
+    const roleTotal =
+        settings.roles.mafia +
+        settings.roles.sheriff +
+        settings.roles.doctor;
+
+    if (roleTotal + 2 > settings.maxPlayers) {
+        showMessage("gameSettingsMessage", t("maxRolesError"));
+        return;
+    }
+
+    socket.emit("createRoom", {
+        name,
+        character: cleanCharacter(character),
+        settings
+    }, response => {
+        if (!response || (!response.success && !response.ok)) {
+            showMessage(
+                "gameSettingsMessage",
+                trErr(response) || t("createError")
+            );
+            return;
+        }
+
+        currentCode = String(response.code || "");
+        currentRoomSettings = response.settings || settings;
+
+        document.getElementById("roomCodeDisplay").textContent = currentCode;
+
+        showPanel("roomPanel");
+        requestRoomUpdate();
+    });
+}
+
+/* =========================
+   ВХОД В КОМНАТУ
+========================= */
+
+function joinRoomNow() {
+    hideMessage("joinMessage");
+
+    if (!socket.connected) {
+        showMessage("joinMessage", t("connectionError"));
+        return;
+    }
+
+    const name = document.getElementById("joinName").value.trim();
+    const code = document.getElementById("joinCode").value.trim();
+
+    if (!name) {
+        showMessage("joinMessage", t("enterName"));
+        return;
+    }
+
+    if (!/^\d{6}$/.test(code)) {
+        showMessage("joinMessage", t("enterCode"));
+        return;
+    }
+
+    socket.emit("joinRoom", {
+        name,
+        code,
+        character: cleanCharacter(character)
+    }, response => {
+        if (!response || (!response.success && !response.ok)) {
+            showMessage(
+                "joinMessage",
+                trErr(response) || t("joinError")
+            );
+            return;
+        }
+
+        currentCode = code;
+        currentRoomSettings = response.settings || null;
+
+        document.getElementById("roomCodeDisplay").textContent = currentCode;
+
+        showPanel("roomPanel");
+        requestRoomUpdate();
+    });
+}
+
+/* =========================
+   ОБНОВЛЕНИЕ СПИСКА ИГРОКОВ
+========================= */
+
+function requestRoomUpdate() {
+    if (!currentCode || !socket.connected) return;
+
+    socket.emit("getRoom", {code: currentCode});
+}
+
+socket.on("roomUpdate", data => {
+    if (!data || !data.code) return;
+
+    if (currentCode && String(data.code) !== String(currentCode)) {
+        return;
+    }
+
+    currentCode = String(data.code);
+
+    // ИСПРАВЛЕНО: запоминаем ведущего, чтобы показывался тег «Ведущий»
+    currentHostId = data.hostId || currentHostId;
+
+    currentRoomSettings = data.settings || currentRoomSettings;
+
+    lastRoomPlayers = Array.isArray(data.players)
+        ? data.players
+        : [];
+
+    document.getElementById("roomCodeDisplay").textContent = currentCode;
+
+    renderPlayers(lastRoomPlayers);
+    updateRoomSettingsSummary();
+    skew = (data.serverNow || Date.now()) - Date.now();
+    onGameRoomUpdate(data);
+});
+
+function renderPlayers(players) {
+    const grid = document.getElementById("playerGrid");
+
+    if (!grid) return;
+
+    grid.innerHTML = "";
+
+    const safePlayers = Array.isArray(players) ? players : [];
+
+    safePlayers.forEach(player => {
+        if (!player) return;
+
+        const card = document.createElement("div");
+        card.className = "player-card";
+
+        const isHost = player.id === currentHostId;
+
+        if (isHost) {
+            card.classList.add("is-host");
+
+            const hostTag = document.createElement("div");
+            hostTag.className = "host-tag";
+            hostTag.textContent = t("host");
+            card.appendChild(hostTag);
+        }
+
+        const avatar = makeAvatar(player);
+
+        const name = document.createElement("div");
+        name.className = "player-name";
+        name.textContent = cleanPlayerName(player.name);
+        applyNameColor(name, player.cos);
+
+        card.appendChild(avatar);
+        card.appendChild(name);
+
+        grid.appendChild(card);
+    });
+
+    document.getElementById("roomStatus").textContent =
+        safePlayers.length + " / " +
+        (currentRoomSettings?.maxPlayers || 30) +
+        " " + t("playerCount");
+}
+
+function makeAvatar(player) {
+    const savedCharacter = cleanCharacter(player.character);
+    const cos = player.cos || {};
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+
+    const head = document.createElement("div");
+    head.className = "avatar-head";
+    head.textContent = savedCharacter.face;
+
+    const body = document.createElement("div");
+    body.className = "avatar-body shape-" + savedCharacter.shape;
+    body.style.backgroundColor = savedCharacter.color;
+
+    avatar.appendChild(head);
+    avatar.appendChild(body);
+
+    if (/^(linear|radial)-gradient\(/.test(cos.bg || "") && !/url\(/i.test(cos.bg)) {
+        avatar.style.background = cos.bg;
+        avatar.classList.add("has-bg");
+    }
+    if (cos.badge) {
+        const b = document.createElement("div");
+        b.className = "avatar-badge";
+        b.textContent = String(cos.badge).slice(0, 4);
+        avatar.appendChild(b);
+    }
+    if (cos.hat) {
+        const h = document.createElement("div");
+        h.className = "avatar-hat";
+        h.textContent = String(cos.hat).slice(0, 4);
+        avatar.appendChild(h);
+    }
+
+    return avatar;
+}
+
+function applyNameColor(el, cos) {
+    if (cos && /^#[0-9a-f]{6}$/i.test(cos.nameColor || "")) el.style.color = cos.nameColor;
+}
+
+/* =========================
+   РЕДАКТОР ПЕРСОНАЖА
+========================= */
+
+const faces = [
+    "🙂","😎","😄","😁","😂","😐","😶","🤔","😴","😮",
+    "😡","🥳","🤓","😇","🤠","😈","👽","🤖","🐻","🐺"
+];
+
+const shapes = [
+    "triangle","circle","square","rectangle","diamond",
+    "star","oval","hexagon","capsule","shield"
+];
+
+const colors = [
+    "#d65b4a","#e58a42","#e5c34d","#83b85b",
+    "#3caa82","#45a6b8","#4c79c9","#8062c7",
+    "#bb65ae","#e58eae","#eeeeee","#777777",
+    "#49352e","#222222","#a66d42","#c7a78c"
+];
+
+function openEditor(origin) {
+    editorOrigin = origin;
+    showPanel("editorPanel");
+    renderEditor();
+}
+
+function renderEditor() {
+    const faceContainer = document.getElementById("faceChoices");
+    const shapeContainer = document.getElementById("shapeChoices");
+    const colorContainer = document.getElementById("colorChoices");
+
+    faceContainer.innerHTML = "";
+    shapeContainer.innerHTML = "";
+    colorContainer.innerHTML = "";
+
+    faces.forEach(face => {
+        const button = document.createElement("button");
+        button.className = "choice";
+        button.textContent = face;
+
+        if (character.face === face) {
+            button.classList.add("selected");
+        }
+
+        button.onclick = () => {
+            character.face = face;
+            renderEditor();
+        };
+
+        faceContainer.appendChild(button);
+    });
+
+    shapes.forEach(shape => {
+        const button = document.createElement("button");
+        button.className = "choice";
+        button.style.width = "55px";
+        button.style.height = "48px";
+
+        const shapePreview = document.createElement("div");
+        shapePreview.className = "avatar-body shape-" + shape;
+        shapePreview.style.backgroundColor = "#d7a45b";
+        shapePreview.style.width = "35px";
+        shapePreview.style.height = "28px";
+        shapePreview.style.margin = "auto";
+
+        button.appendChild(shapePreview);
+
+        if (character.shape === shape) {
+            button.classList.add("selected");
+        }
+
+        button.onclick = () => {
+            character.shape = shape;
+            renderEditor();
+        };
+
+        shapeContainer.appendChild(button);
+    });
+
+    colors.forEach(color => {
+        const button = document.createElement("button");
+        button.className = "choice color-choice";
+        button.style.backgroundColor = color;
+        button.title = color;
+
+        if (character.color === color) {
+            button.classList.add("selected");
+        }
+
+        button.onclick = () => {
+            character.color = color;
+            renderEditor();
+        };
+
+        colorContainer.appendChild(button);
+    });
+
+    const preview = document.getElementById("editorPreview");
+    preview.innerHTML = "";
+    preview.appendChild(makeAvatar({ character, cos: myCos() }));
+    renderCosChoosers();
+}
+
+function saveCharacter() {
+    character = cleanCharacter(character);
+
+    localStorage.setItem("mafiaCharacter", JSON.stringify(character));
+
+    // ИСПРАВЛЕНО: сервер требует code, раньше он не отправлялся
+    if (currentCode && socket.connected) {
+        socket.emit("updateCharacter", {
+            code: currentCode,
+            character: cleanCharacter(character)
+        });
+    }
+
+    if (editorOrigin === "room" && currentCode) {
+        showPanel("roomPanel");
+        requestRoomUpdate();
+    } else {
+        showPanel("mainPanel");
+    }
+}
+
+function closeEditor() {
+    if (editorOrigin === "room" && currentCode) {
+        showPanel("roomPanel");
+    } else {
+        showPanel("mainPanel");
+    }
+}
+
+/* =========================
+   ЯЗЫК
+========================= */
+
+function applyLanguage() {
+    const dictionary = translations[currentLanguage] || translations.ru;
+
+    document.documentElement.lang = currentLanguage;
+    document.body.classList.toggle("rtl", currentLanguage === "he");
+
+    document.querySelectorAll("[data-i18n]").forEach(element => {
+        const key = element.getAttribute("data-i18n");
+
+        if (dictionary[key]) {
+            element.textContent = dictionary[key];
+        }
+    });
+
+    document.getElementById("languageSelect").value = currentLanguage;
+
+    updateMaxPlayersLabel();
+    updateTimerLabels();
+    updateSettingsSummary();
+    updateRoomSettingsSummary();
+    applyGameLang();
+
+    if (lastRoomPlayers.length) {
+        renderPlayers(lastRoomPlayers);
+    }
+}
+
+function changeLanguage(language) {
+    if (!translations[language]) return;
+
+    currentLanguage = language;
+    localStorage.setItem("mafiaLanguage", language);
+
+    applyLanguage();
+}
+
+/* =========================
+   ЭФФЕКТЫ
+========================= */
+
+function getEffects() {
+    try {
+        return JSON.parse(localStorage.getItem("mafiaEffects")) || {
+            light: true,
+            dust: true,
+            stones: false,
+            shadows: true
+        };
+    } catch {
+        return {
+            light: true,
+            dust: true,
+            stones: false,
+            shadows: true
+        };
+    }
+}
+
+function saveEffects() {
+    const effects = {
+        light: document.getElementById("effectLight").checked,
+        dust: document.getElementById("effectDust").checked,
+        stones: document.getElementById("effectStones").checked,
+        shadows: document.getElementById("effectShadows").checked
+    };
+
+    localStorage.setItem("mafiaEffects", JSON.stringify(effects));
+    fxRefresh();
+}
+
+function setAllEffects(value) {
+    document.getElementById("effectLight").checked = value;
+    document.getElementById("effectDust").checked = value;
+    document.getElementById("effectStones").checked = value;
+    document.getElementById("effectShadows").checked = value;
+
+    saveEffects();
+}
+
+function loadEffects() {
+    const effects = getEffects();
+
+    document.getElementById("effectLight").checked = effects.light;
+    document.getElementById("effectDust").checked = effects.dust;
+    document.getElementById("effectStones").checked = effects.stones;
+    document.getElementById("effectShadows").checked = effects.shadows;
+}
+
+/* =========================
+   КОД КОМНАТЫ И ВЫХОД
+========================= */
+
+function copyRoomCode() {
+    if (!currentCode) return;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(currentCode)
+            .then(() => showMessage("roomMessage", t("copied")))
+            .catch(() => fallbackCopyCode());
+    } else {
+        fallbackCopyCode();
+    }
+}
+
+function fallbackCopyCode() {
+    const temporary = document.createElement("textarea");
+    temporary.value = currentCode;
+    document.body.appendChild(temporary);
+    temporary.select();
+
+    try {
+        document.execCommand("copy");
+        showMessage("roomMessage", t("copied"));
+    } catch {
+        showMessage("roomMessage", currentCode);
+    }
+
+    temporary.remove();
+}
+
+function leaveRoom() {
+    socket.emit("leaveRoom");
+    resetGameUI();
+    currentCode = null;
+    currentRoomSettings = null;
+    currentHostId = null;
+    lastRoomPlayers = [];
+
+    document.getElementById("playerGrid").innerHTML = "";
+    document.getElementById("roomCodeDisplay").textContent = "------";
+
+    showPanel("mainPanel");
+}
+
+/* =========================
+   СОБЫТИЯ SOCKET.IO
+========================= */
+
+socket.on("connect", () => {
+    tryAuth();
+    if (currentCode) {
+        requestRoomUpdate();
+    }
+});
+
+socket.on("disconnect", () => {
+    if (currentCode) {
+        showMessage("roomMessage", t("disconnected"));
+    }
+});
+
+socket.on("connect_error", () => {
+    console.warn("Не удалось подключиться к серверу.");
+});
+
+/* =========================
+   ИНИЦИАЛИЗАЦИЯ
+========================= */
+
+/* =========================
+   АНИМАЦИИ (canvas)
+========================= */
+
+const fxCanvas = document.getElementById("fx");
+const fxCtx = fxCanvas.getContext("2d");
+const fxReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let fxState = getEffects();
+let fxW = 0, fxH = 0, fxLast = 0;
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+const fxDust = Array.from({length: 70}, () => ({
+    x: rnd(0, 1), y: rnd(0, 1), r: rnd(0.6, 2.2),
+    vx: rnd(-8, 8), vy: rnd(-14, -3), ph: rnd(0, 6.28), sp: rnd(0.5, 1.6)
+}));
+
+const fxStones = Array.from({length: 14}, () => newStone(true));
+
+const fxBlobs = Array.from({length: 4}, () => ({
+    x: rnd(0, 1), y: rnd(0, 1), r: rnd(240, 440),
+    vx: rnd(-18, 18), vy: rnd(-10, 10)
+}));
+
+function newStone(anywhere) {
+    return {
+        x: rnd(0, 1), y: anywhere ? rnd(-0.1, 1) : -0.08,
+        s: rnd(4, 11), vy: rnd(70, 190), rot: rnd(0, 6.28), vr: rnd(-2.5, 2.5),
+        sway: rnd(0, 6.28),
+        pts: Array.from({length: 6}, () => rnd(0.65, 1))
+    };
+}
+
+function fxResize() {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    fxW = window.innerWidth;
+    fxH = window.innerHeight;
+    fxCanvas.width = fxW * d;
+    fxCanvas.height = fxH * d;
+    fxCtx.setTransform(d, 0, 0, d, 0, 0);
+}
+
+function fxRefresh() {
+    fxState = getEffects();
+    document.getElementById("fxLight").style.display = fxState.light ? "block" : "none";
+}
+
+function fxFrame(now) {
+    const dt = Math.min((now - fxLast) / 1000 || 0, 0.05);
+    fxLast = now;
+    const t = now / 1000;
+    fxCtx.clearRect(0, 0, fxW, fxH);
+
+    if (fxState.shadows) {
+        fxBlobs.forEach(b => {
+            b.x += b.vx * dt / fxW;
+            b.y += b.vy * dt / fxH;
+            if (b.x < -0.1 || b.x > 1.1) b.vx *= -1;
+            if (b.y < -0.1 || b.y > 1.1) b.vy *= -1;
+            const g = fxCtx.createRadialGradient(b.x * fxW, b.y * fxH, 0, b.x * fxW, b.y * fxH, b.r);
+            g.addColorStop(0, "rgba(0,0,0,0.38)");
+            g.addColorStop(1, "rgba(0,0,0,0)");
+            fxCtx.fillStyle = g;
+            fxCtx.fillRect(0, 0, fxW, fxH);
+        });
+    }
+
+    if (fxState.dust) {
+        fxDust.forEach(d => {
+            d.x += (d.vx + Math.sin(t * d.sp + d.ph) * 10) * dt / fxW;
+            d.y += d.vy * dt / fxH;
+            if (d.y < -0.02) { d.y = 1.02; d.x = rnd(0, 1); }
+            if (d.x < -0.02) d.x = 1.02;
+            if (d.x > 1.02) d.x = -0.02;
+            const a = 0.25 + 0.35 * Math.sin(t * d.sp * 2 + d.ph);
+            fxCtx.beginPath();
+            fxCtx.arc(d.x * fxW, d.y * fxH, d.r, 0, 6.283);
+            fxCtx.fillStyle = "rgba(240,202,131," + Math.max(a, 0.05) + ")";
+            fxCtx.shadowColor = "rgba(240,202,131,0.8)";
+            fxCtx.shadowBlur = 6;
+            fxCtx.fill();
+        });
+        fxCtx.shadowBlur = 0;
+    }
+
+    if (fxState.stones) {
+        fxStones.forEach((s, i) => {
+            s.y += s.vy * dt / fxH;
+            s.rot += s.vr * dt;
+            const px = (s.x + Math.sin(t + s.sway) * 0.01) * fxW;
+            const py = s.y * fxH;
+            if (s.y > 1.08) { fxStones[i] = newStone(false); return; }
+            fxCtx.save();
+            fxCtx.translate(px, py);
+            fxCtx.rotate(s.rot);
+            fxCtx.beginPath();
+            s.pts.forEach((k, j) => {
+                const ang = j / 6 * 6.283;
+                const x = Math.cos(ang) * s.s * k, y = Math.sin(ang) * s.s * k;
+                j ? fxCtx.lineTo(x, y) : fxCtx.moveTo(x, y);
+            });
+            fxCtx.closePath();
+            fxCtx.fillStyle = "#6e5d53";
+            fxCtx.fill();
+            fxCtx.lineWidth = 1;
+            fxCtx.strokeStyle = "rgba(0,0,0,0.55)";
+            fxCtx.stroke();
+            fxCtx.beginPath();
+            fxCtx.arc(-s.s * 0.25, -s.s * 0.25, s.s * 0.28, 0, 6.283);
+            fxCtx.fillStyle = "rgba(255,230,200,0.18)";
+            fxCtx.fill();
+            fxCtx.restore();
+        });
+    }
+
+    requestAnimationFrame(fxFrame);
+}
+
+function startFX() {
+    fxResize();
+    fxRefresh();
+    window.addEventListener("resize", fxResize);
+    if (!fxReduced) requestAnimationFrame(fxFrame);
+}
+
+/* =========================
+   ИГРА
+========================= */
+
+let G = null, skew = 0, seatKey = "", prevAlive = [], unread = 0, chatOpen = false;
+let ME = { role: null, mates: [], vote: null, acted: null, checks: [] };
+const $ = id => document.getElementById(id);
+const PHI = { night: "🌙", morning: "🌅", discussion: "☀️", voting: "⚖️", exile: "🚪", exileRole: "🚪", finished: "🏁" };
+const RN = new Proxy({}, { get: (_, k) => t(k) });
+let revealKey = "";
+function tr(k, p) { let x = t(k); if (p) for (const n in p) x = x.split("{" + n + "}").join(p[n]); return x; }
+function trErr(r) { return r && r.error ? tr(r.error, r.params) : ""; }
+const RI = { mafia: "🔫", sheriff: "⭐", doctor: "💉", citizen: "🏠" };
+const cbErr = r => { if (!r || !r.success) toast(trErr(r) || tr("e_generic"), "err"); };
+
+function toast(text, kind) {
+    const el = document.createElement("div");
+    el.className = "toast " + (kind || "");
+    el.textContent = text;
+    $("toasts").appendChild(el);
+    setTimeout(() => el.remove(), 5100);
+}
+
+function confirmBox(text, onYes) {
+    const o = document.createElement("div");
+    o.className = "confirm-overlay";
+    const b = document.createElement("div");
+    b.className = "confirm-box";
+    const q = document.createElement("h3");
+    q.textContent = text;
+    q.style.color = "var(--gold-light)";
+    const a = document.createElement("div");
+    a.className = "actions";
+    const y = document.createElement("button");
+    y.className = "btn green"; y.textContent = t("yes");
+    y.onclick = () => { o.remove(); onYes(); };
+    const n = document.createElement("button");
+    n.className = "btn red"; n.textContent = t("no");
+    n.onclick = () => o.remove();
+    a.append(y, n); b.append(q, a); o.appendChild(b);
+    document.body.appendChild(o);
+}
+
+function startGame() { socket.emit("startGame", {}, r => { if (!r || !r.success) showMessage("roomMessage", trErr(r) || tr("e_generic")); }); }
+function hostNext() { socket.emit("nextPhase", {}, cbErr); }
+function hostReset() { socket.emit("resetGame", {}, cbErr); }
+
+function onGameRoomUpdate(d) {
+    G = d.game;
+    $("chatFab").classList.remove("hidden");
+    $("eyeFab").classList.remove("hidden");
+    $("startBtn").classList.toggle("hidden", socket.id !== currentHostId || G.phase !== "lobby");
+
+    const inGame = G.phase !== "lobby";
+    if (inGame && !$("roomPanel").classList.contains("hidden")) showPanel("gamePanel");
+    else if (!inGame && !$("gamePanel").classList.contains("hidden")) showPanel("roomPanel");
+
+    if (!inGame) { seatKey = ""; prevAlive = []; revealKey = ""; lastReward = null; }
+    if (inGame) renderGame();
+}
+
+socket.on("gameState", st => { ME = st; renderGame(); });
+socket.on("announce", a => {
+    const p = a.params ? { ...a.params } : null;
+    if (p && p.role) p.role = t(p.role);
+    const text = tr(a.key, p);
+    toast(text, a.kind);
+    addChat({ system: true, message: text });
+});
+socket.on("chatMessage", m => addChat(m));
+
+function hostName() {
+    const h = lastRoomPlayers.find(p => p.id === currentHostId);
+    return h ? cleanPlayerName(h.name) : "—";
+}
+
+function myAction() {
+    if (!G || socket.id === currentHostId || !G.alive.includes(socket.id)) return null;
+    if (G.phase === "voting" && !ME.vote) return "vote";
+    if (G.phase === "night" && !ME.acted && ["mafia", "doctor", "sheriff"].includes(ME.role)) return ME.role;
+    return null;
+}
+
+function canTarget(id) {
+    const a = myAction();
+    if (!a || !G.alive.includes(id)) return false;
+    if (a === "vote" || a === "sheriff") return id !== socket.id;
+    if (a === "mafia") return !ME.mates.includes(id);
+    return true;
+}
+
+function renderGame() {
+    if (!G || G.phase === "lobby" || $("gamePanel").classList.contains("hidden")) return;
+
+    const fin = G.phase === "finished";
+    const night = G.phase === "night";
+    const isHost = socket.id === currentHostId;
+
+    $("gTitle").textContent = PHI[G.phase] + " " + t("phase_" + G.phase);
+    $("gSub").textContent = (G.round ? t("round") + " " + G.round + " · " : "") + t("host") + ": " + hostName();
+    $("gScene").classList.toggle("night", night);
+    $("gScene").classList.toggle("day", !night);
+    $("gSky").textContent = night ? "🌙" : G.phase === "morning" ? "🌅" : "☀️";
+
+    $("gRole").textContent = isHost ? "🎙 " + t("youHost") : (ME.role ? RI[ME.role] + " " + RN[ME.role] : "");
+    $("gRole").className = "g-role" + (ME.role === "mafia" ? " mafia" : "");
+    $("gRole").classList.toggle("hidden", !isHost && !ME.role);
+
+    $("gNext").classList.toggle("hidden", !isHost || currentRoomSettings?.mode !== "manual" || fin);
+    $("gReset").classList.toggle("hidden", !isHost || !fin);
+    $("gScene").classList.toggle("hidden", fin);
+    $("gHint").classList.toggle("hidden", fin);
+    $("gVictory").classList.toggle("hidden", !fin);
+
+    if (fin) { renderVictory(); return; }
+    $("gVictory").dataset.k = "";
+
+    renderTable();
+    renderSeats();
+    renderHint();
+}
+
+function renderTable() {
+    const box = $("gTableText");
+    let rv = null, mode = "";
+
+    if (G.phase === "discussion" && G.reveal) { rv = G.reveal; mode = "night"; }
+    else if ((G.phase === "exile" || G.phase === "exileRole") && G.exile) { rv = G.exile; mode = "exile"; }
+
+    const key = rv ? mode + ":" + G.round + ":" + (rv.id || "none") : "";
+    const fresh = key !== revealKey;
+    revealKey = key;
+
+    box.innerHTML = "";
+    if (!rv) { box.textContent = "MAFIA"; return; }
+
+    const card = document.createElement("div");
+    card.className = "reveal" + (fresh ? " anim" : "");
+
+    if (rv.none) {
+        card.textContent = mode === "exile" ? "⚖️ " + t("exNone") : (rv.saved ? "💉 " : "☀️ ") + t(rv.saved ? "revSaved" : "revNone");
+    } else {
+        const nm = document.createElement("div");
+        nm.className = "rv-name";
+        nm.textContent = cleanPlayerName(rv.name);
+        applyNameColor(nm, rv.cos);
+
+        const tx = document.createElement("div");
+        tx.className = "rv-text";
+        tx.textContent = mode === "exile" ? "🚪 " + t("exiled") : "💀 " + t("revDied");
+
+        card.append(makeAvatar({ character: rv.character, cos: rv.cos }), nm, tx);
+
+        if (mode === "exile" && rv.role) {
+            const r = document.createElement("div");
+            r.className = "rv-role";
+            r.textContent = RI[rv.role] + " " + t("exRole") + ": " + RN[rv.role];
+            card.appendChild(r);
+        }
+    }
+
+    box.appendChild(card);
+}
+
+function renderVictory() {
+    const v = $("gVictory");
+    const k = G.winner + "|" + lastRoomPlayers.length + "|" + (lastReward ? lastReward.amount : 0);
+    if (v.dataset.k === k && v.firstChild) return;
+    v.dataset.k = k;
+
+    v.className = "victory " + (G.winner === "mafia" ? "mafia" : "town");
+    v.innerHTML = "";
+
+    const h = document.createElement("h2");
+    h.textContent = t(G.winner === "mafia" ? "mafiaWin" : "townWin");
+    v.appendChild(h);
+
+    ["mafia", "sheriff", "doctor"].forEach(role => {
+        const ids = Object.keys(G.roles || {}).filter(id => G.roles[id] === role);
+        const players = ids.map(id => lastRoomPlayers.find(p => p.id === id)).filter(Boolean);
+        if (!players.length) return;
+
+        const row = document.createElement("div");
+        row.className = "v-row";
+        const label = document.createElement("div");
+        label.className = "v-label";
+        label.textContent = t("was_" + role);
+        const list = document.createElement("div");
+        list.className = "v-list";
+
+        players.forEach((p, i) => {
+            const w = document.createElement("div");
+            w.className = "v-p";
+            w.style.animationDelay = (0.3 + i * 0.15) + "s";
+            const nm = document.createElement("div");
+            nm.textContent = cleanPlayerName(p.name);
+            w.append(makeAvatar(p), nm);
+            list.appendChild(w);
+        });
+
+        row.append(label, list);
+        v.appendChild(row);
+    });
+
+    if (lastReward) {
+        const r = document.createElement("div");
+        r.className = "v-reward";
+        r.textContent = tr("reward", { n: lastReward.amount });
+        v.appendChild(r);
+    }
+}
+
+function applyGameLang() {
+    $("startBtn").textContent = "▶ " + t("startGame");
+    $("gNext").textContent = t("nextBtn") + " ▶";
+    $("gReset").textContent = t("toLobby");
+    $("gLeave").textContent = t("leaveGame");
+    $("chatTitle").textContent = "💬 " + t("chatTitle");
+    $("chatInput").placeholder = t("chatPh");
+    $("eyeFab").title = t("eyeBtn");
+    $("authUser").placeholder = t("username");
+    $("authPass").placeholder = t("password");
+    renderRules();
+    updateAccountBar();
+    if (!$("shopPanel").classList.contains("hidden")) renderShop();
+    $("hostName").placeholder = t("enterNamePh");
+    $("joinName").placeholder = t("enterNamePh");
+    if (G) renderGame();
+}
+
+function renderSeats() {
+    const box = $("gSeats");
+    const ps = lastRoomPlayers.filter(p => p.id !== currentHostId);
+    const key = ps.map(p => p.id).join();
+    const fresh = key !== seatKey;
+    seatKey = key;
+
+    box.querySelectorAll(".seat").forEach(e => e.remove());
+
+    ps.forEach((p, i) => {
+        const ang = i / ps.length * Math.PI * 2 - Math.PI / 2;
+        const seat = document.createElement("div");
+        seat.className = "seat" + (fresh ? " enter" : "");
+        seat.style.left = (50 + 41 * Math.cos(ang)) + "%";
+        seat.style.top = (54 + 36 * Math.sin(ang)) + "%";
+        seat.style.animationDelay = fresh ? (i * 70) + "ms" : "0ms";
+
+        const dead = !G.alive.includes(p.id);
+        const mate = ME.mates.includes(p.id);
+        if (dead) seat.classList.add("dead");
+        if (dead && prevAlive.includes(p.id)) seat.classList.add("dying");
+        if (mate) seat.classList.add("mate");
+        if (p.id === socket.id) seat.classList.add("me");
+        if (ME.acted === p.id || ME.vote === p.id) seat.classList.add("picked");
+        if (canTarget(p.id)) { seat.classList.add("target"); seat.onclick = () => pickTarget(p); }
+
+        const nm = document.createElement("div");
+        nm.className = "seat-name";
+        nm.textContent = cleanPlayerName(p.name);
+        applyNameColor(nm, p.cos);
+
+        const av = makeAvatar(p);
+        av.classList.add("seat-av");
+
+        const role = (G.roles && G.roles[p.id]) || G.deadRoles[p.id] || (mate ? "mafia" : null);
+        const bits = [];
+        if (p.id === socket.id) bits.push(t("you"));
+        if (role) bits.push(RI[role] + " " + RN[role]);
+        if (G.phase === "voting" && G.voted.includes(p.id)) bits.push("✓");
+
+        const tag = document.createElement("div");
+        tag.className = "seat-tag";
+        tag.textContent = bits.join(" · ");
+
+        seat.append(nm, av, tag);
+        box.appendChild(seat);
+    });
+
+    prevAlive = [...G.alive];
+}
+
+function renderHint() {
+    const h = $("gHint");
+    const a = myAction();
+    const isHost = socket.id === currentHostId;
+    let m;
+
+    if (isHost) m = {
+        night: tr("hHostNight"), morning: tr("hHostMorning"), discussion: tr("hHostDiscussion"),
+        voting: tr("hHostVoting", { a: G.voted.length, b: G.alive.length }),
+        exile: tr("hHostExile"), exileRole: tr("hHostExile")
+    }[G.phase];
+    else if (!G.alive.includes(socket.id)) m = t("hDead");
+    else if (a === "vote") m = t("hVote");
+    else if (a === "mafia") m = t("hMafia");
+    else if (a === "doctor") m = t("hDoctor");
+    else if (a === "sheriff") m = t("hSheriff");
+    else if (G.phase === "night") m = ME.acted ? t("hActed") : t("hSleep");
+    else if (G.phase === "morning") m = t("hMorning");
+    else if (G.phase === "exile" || G.phase === "exileRole") m = t("hExile");
+    else if (G.phase === "voting") m = t("hVoted");
+    else m = t("hDiscuss");
+
+    h.textContent = m;
+
+    if (ME.role === "sheriff" && ME.checks.length) {
+        const d = document.createElement("div");
+        d.className = "g-checks";
+        d.textContent = t("checks") + ": " + ME.checks.map(c => c.name + " — " + t(c.isMafia ? "mafiaYes" : "mafiaNo")).join("; ");
+        h.appendChild(d);
+    }
+}
+
+function pickTarget(p) {
+    const a = myAction();
+    if (!a) return;
+    const key = { vote: "askVote", mafia: "askMafia", doctor: "askDoctor", sheriff: "askSheriff" }[a];
+    confirmBox(tr(key, { n: cleanPlayerName(p.name) }), () => {
+        if (a === "vote") socket.emit("castVote", { targetId: p.id }, cbErr);
+        else socket.emit("nightAction", { targetId: p.id }, cbErr);
+    });
+}
+
+/* ---------- чат ---------- */
+
+function addChat(m) {
+    const log = $("chatLog");
+    const d = document.createElement("div");
+    d.className = "chat-msg" + (m.system ? " sys" : "") + (m.channel === "mafia" ? " maf" : "");
+
+    if (!m.system) {
+        const s = document.createElement("strong");
+        s.textContent = (m.channel === "mafia" ? "🔫 " : "") + cleanPlayerName(m.name) + ": ";
+        d.appendChild(s);
+    }
+
+    d.appendChild(document.createTextNode(String(m.message || "")));
+    log.appendChild(d);
+    while (log.children.length > 100) log.firstChild.remove();
+    log.scrollTop = log.scrollHeight;
+
+    if (!chatOpen && !m.system) {
+        unread++;
+        $("chatBadge").textContent = unread;
+        $("chatBadge").classList.remove("hidden");
+    }
+}
+
+function toggleChat() {
+    chatOpen = !chatOpen;
+    $("chatDrawer").classList.toggle("hidden", !chatOpen);
+    if (chatOpen) {
+        unread = 0;
+        $("chatBadge").classList.add("hidden");
+        $("chatLog").scrollTop = $("chatLog").scrollHeight;
+        $("chatInput").focus();
+    }
+}
+
+function sendChat() {
+    const input = $("chatInput");
+    const message = input.value.trim();
+    if (!message) return;
+    socket.emit("chatMessage", { message }, r => {
+        if (r && r.success) input.value = "";
+        else toast(trErr(r) || tr("e_generic"), "err");
+    });
+}
+
+$("chatInput").addEventListener("keydown", e => { if (e.key === "Enter") sendChat(); });
+
+function resetGameUI() {
+    G = null; seatKey = ""; prevAlive = []; revealKey = ""; lastReward = null;
+    ME = { role: null, mates: [], vote: null, acted: null, checks: [] };
+    chatOpen = false; unread = 0;
+    $("chatLog").innerHTML = "";
+    $("chatDrawer").classList.add("hidden");
+    $("chatFab").classList.add("hidden");
+    $("eyeFab").classList.add("hidden");
+    $("chatBadge").classList.add("hidden");
+    $("startBtn").classList.add("hidden");
+}
+
+setInterval(() => {
+    const el = $("gTimer");
+    if (G && G.endsAt && G.phase !== "finished") {
+        el.textContent = "⏳ " + Math.max(0, Math.ceil((G.endsAt - (Date.now() + skew)) / 1000)) + " сек.";
+    } else {
+        el.textContent = "";
+    }
+}, 400);
+
+/* ---------- глаз и правила ---------- */
+
+function closeEyes() {
+    if ($("eyesCover")) return;
+    const c = document.createElement("div");
+    c.id = "eyesCover";
+    c.innerHTML = $("eyeFab").innerHTML;
+    c.onclick = () => c.remove();
+    document.body.appendChild(c);
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape") { const c = $("eyesCover"); if (c) c.remove(); } });
+
+function renderRules() {
+    const b = $("rulesBody");
+    if (!b) return;
+    b.innerHTML = "";
+
+    const h = k => { const e = document.createElement("h3"); e.textContent = t(k); b.appendChild(e); };
+    const p = (text, bold) => {
+        const e = document.createElement("p");
+        if (bold) { const s = document.createElement("strong"); s.textContent = bold + " — "; e.appendChild(s); }
+        e.appendChild(document.createTextNode(text));
+        b.appendChild(e);
+    };
+
+    h("r_goal_h"); p(t("r_goal"));
+    h("r_roles_h");
+    p(t("r_host"), "🎙 " + t("host")); p(t("r_mafia"), "🔫 " + t("mafia")); p(t("r_sheriff"), "⭐ " + t("sheriff"));
+    p(t("r_doctor"), "💉 " + t("doctor")); p(t("r_citizen"), "🏠 " + t("citizen"));
+    h("r_flow_h");
+    p(t("r_night"), "🌙 " + t("phase_night")); p(t("r_morning"), "🌅 " + t("phase_morning"));
+    p(t("r_day"), "☀️ " + t("phase_discussion")); p(t("r_vote"), "⚖️ " + t("phase_voting")); p(t("r_exile"), "🚪 " + t("phase_exile"));
+    h("r_win_h"); p(t("r_win"));
+    h("r_tips_h"); p(t("r_tip_eye")); p(t("r_tip_chat")); p(t("r_tip_modes")); p(t("r_tip_coins"));
+}
+
+/* ---------- аккаунт, магазин, предметы ---------- */
+
+let PROFILE = null, SHOP = [], lastReward = null, shopTab = "hat", tryOn = {};
+const SLOTS = ["hat", "badge", "nameColor", "background"];
+const RARC = ["#b8b8b8", "#4fcf6d", "#a56bff", "#ff5c7a", "#ffc94d"];
+
+// Запрос с ожиданием ответа: если сервер молчит (старая версия), покажем понятную ошибку
+function ask(ev, data, cb) {
+    if (!socket.connected) { cb({ error: "connectionError" }); return; }
+    socket.timeout(5000).emit(ev, data, (err, r) => cb(err ? { error: "e_noserver" } : r));
+}
+
+const itemById = id => SHOP.find(i => i.id === id);
+
+function cosFrom(equipped, over) {
+    const e = { ...(equipped || {}), ...(over || {}) };
+    const v = slot => { const it = itemById(e[slot]); return it ? it.v : undefined; };
+    return { nameColor: v("nameColor"), badge: v("badge"), hat: v("hat"), bg: v("background") };
+}
+const myCos = () => PROFILE ? cosFrom(PROFILE.equipped) : {};
+
+function mkBtn(text, fn, cls) {
+    const b = document.createElement("button");
+    b.className = "btn" + (cls ? " " + cls : "");
+    b.textContent = text;
+    b.onclick = fn;
+    return b;
+}
+
+function updateAccountBar() {
+    const bar = $("accountBar");
+    if (!bar) return;
+    bar.innerHTML = "";
+
+    if (PROFILE) {
+        const n = document.createElement("span");
+        n.className = "acc-name";
+        n.textContent = "👤 " + PROFILE.name + " · 🪙 " + PROFILE.coins;
+        bar.append(n, mkBtn(t("shop"), openShop), mkBtn(t("logout"), doLogout, "secondary"));
+    } else {
+        const g = document.createElement("span");
+        g.className = "small";
+        g.textContent = t("guestHint");
+        bar.append(g, mkBtn(t("login"), () => showPanel("authPanel")));
+    }
+}
+
+function fillNames() {
+    if (!PROFILE) return;
+    ["hostName", "joinName"].forEach(id => { if (!$(id).value) $(id).value = PROFILE.name; });
+}
+
+function loadShop(cb) {
+    ask("shopInfo", {}, r => {
+        if (r && r.success) { SHOP = r.catalog; if (r.profile) PROFILE = r.profile; }
+        if (cb) cb();
+    });
+}
+
+function tryAuth() {
+    const token = localStorage.getItem("mafiaToken");
+    if (!token) { loadShop(updateAccountBar); return; }
+
+    ask("auth", { token }, r => {
+        if (r && r.success) PROFILE = r.profile;
+        else { if (r && r.error === "a_login") localStorage.removeItem("mafiaToken"); PROFILE = null; }
+        loadShop(() => { updateAccountBar(); fillNames(); });
+    });
+}
+
+function doAuth(kind) {
+    hideMessage("authMessage");
+    ask(kind, { username: $("authUser").value.trim(), password: $("authPass").value }, r => {
+        if (!r || !r.success) { showMessage("authMessage", trErr(r) || tr("e_generic")); return; }
+        localStorage.setItem("mafiaToken", r.token);
+        PROFILE = r.profile;
+        $("authPass").value = "";
+        loadShop(() => { updateAccountBar(); fillNames(); openShop(); });
+    });
+}
+
+function doLogout() {
+    socket.emit("logout", { token: localStorage.getItem("mafiaToken") });
+    localStorage.removeItem("mafiaToken");
+    PROFILE = null;
+    updateAccountBar();
+}
+
+socket.on("reward", r => {
+    lastReward = r;
+    if (PROFILE) PROFILE.coins = r.coins;
+    updateAccountBar();
+    if (G && G.phase === "finished") { $("gVictory").dataset.k = ""; renderGame(); }
+});
+
+function itemChip(item, selected) {
+    const b = document.createElement("button");
+    b.className = "choice item-chip" + (selected ? " selected" : "");
+    b.style.borderColor = RARC[item.r];
+
+    if (item.slot === "nameColor" || item.slot === "background") {
+        const d = document.createElement("span");
+        d.className = item.slot === "nameColor" ? "chip-dot" : "chip-bg";
+        d.style.background = item.v;
+        b.appendChild(d);
+    } else {
+        b.textContent = item.v;
+    }
+    return b;
+}
+
+function equipSlot(slot, id) {
+    ask("equipItem", { slot, id }, r => {
+        if (!r || !r.success) { toast(trErr(r) || tr("e_generic"), "err"); return; }
+        PROFILE = r.profile;
+        renderEditor();
+        updateAccountBar();
+        if (!$("shopPanel").classList.contains("hidden")) renderShop();
+    });
+}
+
+function renderCosChoosers() {
+    const box = $("cosChoosers");
+    if (!box) return;
+    box.innerHTML = "";
+
+    if (!PROFILE) {
+        const n = document.createElement("div");
+        n.className = "small";
+        n.style.marginBottom = "14px";
+        n.textContent = t("loginForItems");
+        box.appendChild(n);
+        return;
+    }
+
+    SLOTS.forEach(slot => {
+        const sec = document.createElement("div");
+        sec.className = "setting-section";
+        const h = document.createElement("h3");
+        h.textContent = t("slot_" + slot);
+        const grid = document.createElement("div");
+        grid.className = "choice-grid";
+
+        const none = document.createElement("button");
+        none.className = "choice" + (PROFILE.equipped[slot] ? "" : " selected");
+        none.textContent = "∅";
+        none.title = t("none");
+        none.onclick = () => equipSlot(slot, null);
+        grid.appendChild(none);
+
+        SHOP.filter(i => i.slot === slot && PROFILE.owned.includes(i.id)).forEach(i => {
+            const c = itemChip(i, PROFILE.equipped[slot] === i.id);
+            c.onclick = () => equipSlot(slot, i.id);
+            grid.appendChild(c);
+        });
+
+        sec.append(h, grid);
+        box.appendChild(sec);
+    });
+}
+
+function openShop() {
+    if (!PROFILE) { showPanel("authPanel"); return; }
+    tryOn = {};
+    showPanel("shopPanel");
+    renderShop();
+}
+
+function renderShop() {
+    if (!PROFILE) return;
+    $("shopCoins").textContent = "🪙 " + PROFILE.coins;
+
+    const cos = cosFrom(PROFILE.equipped, tryOn);
+    const pv = $("shopPreview");
+    pv.innerHTML = "";
+    pv.appendChild(makeAvatar({ character, cos }));
+
+    const nm = $("shopName");
+    nm.textContent = PROFILE.name;
+    nm.style.color = cos.nameColor || "";
+
+    const tabs = $("shopTabs");
+    tabs.innerHTML = "";
+    SLOTS.forEach(slot => {
+        const b = mkBtn(t("slot_" + slot), () => { shopTab = slot; renderShop(); }, slot === shopTab ? "" : "secondary");
+        b.classList.add("small-btn");
+        tabs.appendChild(b);
+    });
+
+    const grid = $("shopGrid");
+    grid.innerHTML = "";
+
+    SHOP.filter(i => i.slot === shopTab).sort((a, b) => a.r - b.r || a.price - b.price).forEach((item, idx) => {
+        const owned = PROFILE.owned.includes(item.id);
+        const worn = PROFILE.equipped[item.slot] === item.id;
+
+        const card = document.createElement("div");
+        card.className = "shop-item" + (tryOn[item.slot] === item.id ? " sel" : "");
+        card.style.borderColor = RARC[item.r];
+        card.style.color = RARC[item.r];
+        card.style.animationDelay = (idx * 30) + "ms";
+        card.onclick = () => { tryOn[item.slot] = item.id; renderShop(); };
+
+        const chip = itemChip(item, false);
+        chip.style.pointerEvents = "none";
+
+        const rar = document.createElement("div");
+        rar.className = "rar-label";
+        rar.textContent = t("rar_" + item.r);
+
+        const price = document.createElement("div");
+        price.className = "price";
+        price.textContent = "🪙 " + item.price;
+
+        let btn;
+        if (worn) { btn = mkBtn(t("equipped"), () => {}, "secondary small-btn"); btn.disabled = true; }
+        else if (owned) btn = mkBtn(t("equip"), e => { e.stopPropagation(); equipSlot(item.slot, item.id); }, "green small-btn");
+        else btn = mkBtn(t("buy"), e => {
+            e.stopPropagation();
+            ask("buyItem", { id: item.id }, r => {
+                if (!r || !r.success) { toast(trErr(r) || tr("e_generic"), "err"); return; }
+                PROFILE = r.profile;
+                toast(t("bought"), "day");
+                updateAccountBar();
+                renderShop();
+            });
+        }, "small-btn");
+
+        card.append(chip, rar, price, btn);
+        grid.appendChild(card);
+    });
+}
+
+function initialize() {
+    character = cleanCharacter(character);
+
+    document.getElementById("maxPlayers").value = 30;
+    document.getElementById("discussionTime").value = 60;
+    document.getElementById("votingTime").value = 60;
+
+    loadEffects();
+    startFX();
+
+    applyLanguage();
+    updateMaxPlayersLabel();
+    updateTimerLabels();
+    updateSettingsSummary();
+}
+
+initialize();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: mafia-game
+    runtime: node
+    plan: starter            # нужен платный план: на нём есть постоянный диск для аккаунтов
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /robots.txt
+    disk:
+      name: mafia-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATA_DIR
+        value: /data
+      - key: SITE_URL
+        sync: false          # впишите адрес сайта, например https://mafia-game.onrender.com
+      - key: GOOGLE_VERIFY
+        sync: false          # код из Google Search Console (позже)
+      - key: BING_VERIFY
+        sync: false          # код из Bing Webmaster Tools (позже)
